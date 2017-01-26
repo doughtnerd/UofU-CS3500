@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using System.Diagnostics;
 
 namespace Formulas
 {
@@ -37,6 +38,11 @@ namespace Formulas
         /// </summary>
         public Formula(String formula)
         {
+            IEnumerator<string> iterator = GetTokens(formula).GetEnumerator();
+            while (iterator.MoveNext())
+            {
+                Debug.WriteLine(iterator.Current);
+            }
         }
         /// <summary>
         /// Evaluates this Formula, using the Lookup delegate to determine the values of variables.  (The
