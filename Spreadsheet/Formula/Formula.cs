@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using System.Diagnostics;
 
 namespace Formulas
 {
@@ -38,10 +37,20 @@ namespace Formulas
         /// </summary>
         public Formula(String formula)
         {
+            string test = GetTokens(formula).ToString();
             IEnumerator<string> iterator = GetTokens(formula).GetEnumerator();
+            int numberOfOpeningParentheses = 0, numberOfClosingParentheses = 0;
             while (iterator.MoveNext())
             {
-                Debug.WriteLine(iterator.Current);
+                string current = iterator.Current;
+                if (numberOfClosingParentheses > numberOfOpeningParentheses)
+                {
+                    throw new FormulaFormatException("Number of closing parentheses exceeded number of opening parentheses.");
+                }
+            }
+            if (numberOfOpeningParentheses != numberOfClosingParentheses)
+            {
+                throw new FormulaFormatException("Number of opening parentheses does not match number of closing parentheses.");
             }
         }
         /// <summary>
@@ -55,6 +64,9 @@ namespace Formulas
         /// </summary>
         public double Evaluate(Lookup lookup)
         {
+            Stack<string> values = new Stack<string>();
+            Stack<string> operators = new Stack<string>();
+            
             return 0;
         }
 
