@@ -23,7 +23,7 @@ namespace FormulaTestCases
         [ExpectedException(typeof(FormulaFormatException))]
         public void Construct1()
         {
-            Formula f = new Formula("_");
+            Formula f = new Formula("_2 + (3.5) - 36bc");
         }
 
         /// <summary>
@@ -33,7 +33,7 @@ namespace FormulaTestCases
         [ExpectedException(typeof(FormulaFormatException))]
         public void Construct2()
         {
-            Formula f = new Formula("2++3");
+            Formula f = new Formula("");
         }
 
         /// <summary>
@@ -43,7 +43,7 @@ namespace FormulaTestCases
         [ExpectedException(typeof(FormulaFormatException))]
         public void Construct3()
         {
-            Formula f = new Formula("2 3");
+            Formula f = new Formula("(2 + 3)* )(6)");
         }
 
         /// <summary>
@@ -53,7 +53,7 @@ namespace FormulaTestCases
         [ExpectedException(typeof(FormulaFormatException))]
         public void Construct4()
         {
-            Formula f = new Formula("2 5 + 3");
+            Formula f = new Formula("(2 + 5 + 3");
         }
 
         /// <summary>
@@ -64,6 +64,45 @@ namespace FormulaTestCases
         public void Construct5()
         {
             Formula f = new Formula("-5.3");
+        }
+
+        /// <summary>
+        /// Another syntax error.
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void Construct6()
+        {
+            Formula f = new Formula("2 - 3.5+");
+        }
+
+        /// <summary>
+        /// Another syntax error.
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void Construct7()
+        {
+            Formula f = new Formula("2 + + 3");
+        }
+
+        /// <summary>
+        /// Another syntax error.
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void Construct8()
+        {
+            Formula f = new Formula("2/ 36a");
+        }
+
+        /// <summary>
+        /// Another syntax error.
+        /// </summary>
+        [TestMethod]
+        public void Construct9()
+        {
+            Formula f = new Formula("((3*6)+18*b)");
         }
 
         /// <summary>
