@@ -15,6 +15,7 @@ namespace Formulas
     /// </summary>
     public class Formula
     {
+        private char[] formula;
         /// <summary>
         /// Creates a Formula from a string that consists of a standard infix expression composed
         /// from non-negative floating-point numbers (using C#-like syntax for double/int literals), 
@@ -37,12 +38,56 @@ namespace Formulas
         /// </summary>
         public Formula(String formula)
         {
-            string test = GetTokens(formula).ToString();
-            IEnumerator<string> iterator = GetTokens(formula).GetEnumerator();
+            char[] formulaString = string.Join("", GetTokens(formula)).ToCharArray();
             int numberOfOpeningParentheses = 0, numberOfClosingParentheses = 0;
-            while (iterator.MoveNext())
+            char first = formulaString[0], last = formulaString[formulaString.Length - 1];
+            bool checkNextType1 = false, checkNextType2 = false;
+            if (formulaString.Length <= 0)
             {
-                string current = iterator.Current;
+                throw new FormulaFormatException("Invalid formula size.");
+            }
+            if (!(Char.IsLetterOrDigit(first) || first.Equals('(')))
+            {
+                throw new FormulaFormatException("Invalid first character.");
+            }
+            if (!(Char.IsLetterOrDigit(last) || last.Equals(')')))
+            {
+                throw new FormulaFormatException("Invalid last character.");
+            }
+            for (int index = 0; index < formulaString.Length; index++)
+            {
+                if (checkNextType1)
+                {
+                    if (!(Char.IsLetterOrDigit(formulaString[index]) || formulaString[index].Equals('(')))
+                    {
+                        throw new FormulaFormatException("Expected a number, a variable, or an opening parentheses to follow an opening parentheses or an operator.");
+                    }
+                }
+                if (checkNextType2)
+                {
+                    if (!(formulaString[index].Equals('+') || formulaString[index].Equals('-') || formulaString[index].Equals('*') || formulaString[index].Equals('/') || formulaString[index].Equals(')')))
+                    {
+                        throw new FormulaFormatException("Expected an operator or a closing parentheses to follow a number, a variable, or a closing parentheses.");
+                    }
+                }
+                if (formulaString[index].Equals('+') || formulaString[index].Equals('-') || formulaString[index].Equals('*') || formulaString[index].Equals('/'))
+                {
+                    checkNextType1 = true;
+                }
+                if (Char.IsLetterOrDigit(formulaString[index]))
+                {
+                    checkNextType2 = true;
+                }
+                if (formulaString[index].Equals('('))
+                {
+                    checkNextType1 = true;
+                    numberOfOpeningParentheses++;
+                }
+                if (formulaString[index].Equals(')'))
+                {
+                    checkNextType2 = true;
+                    numberOfClosingParentheses++;
+                }
                 if (numberOfClosingParentheses > numberOfOpeningParentheses)
                 {
                     throw new FormulaFormatException("Number of closing parentheses exceeded number of opening parentheses.");
@@ -52,6 +97,21 @@ namespace Formulas
             {
                 throw new FormulaFormatException("Number of opening parentheses does not match number of closing parentheses.");
             }
+            this.formula = formulaString;
+            //IEnumerator<string> iterator = GetTokens(formula).GetEnumerator();
+            //int numberOfOpeningParentheses = 0, numberOfClosingParentheses = 0;
+            //while (iterator.MoveNext())
+            //{
+            //    string current = iterator.Current;
+            //    if (numberOfClosingParentheses > numberOfOpeningParentheses)
+            //    {
+            //        throw new FormulaFormatException("Number of closing parentheses exceeded number of opening parentheses.");
+            //    }
+            //}
+            //if (numberOfOpeningParentheses != numberOfClosingParentheses)
+            //{
+            //    throw new FormulaFormatException("Number of opening parentheses does not match number of closing parentheses.");
+            //}
         }
         /// <summary>
         /// Evaluates this Formula, using the Lookup delegate to determine the values of variables.  (The
@@ -64,9 +124,74 @@ namespace Formulas
         /// </summary>
         public double Evaluate(Lookup lookup)
         {
-            Stack<string> values = new Stack<string>();
-            Stack<string> operators = new Stack<string>();
-            
+        //    Stack<double> values = new Stack<double>();
+        //    Stack<string> operators = new Stack<string>();
+        //    while (/*tokens are being processed*/)
+        //    {
+        //        if (/*current token is a double*/)
+        //        {
+        //            double x;
+        //            Double.TryParse("token", out x);
+        //        }
+        //        else if (/*current token is a variable*/)
+        //        {
+        //            Char.IsLetter("token");
+        //        }
+        //        else if (/*current token is + or -*/)
+        //        {
+        //            if (/*+ or - at top of operator stack*/)
+        //            {
+        //                double second = values.Pop();
+        //                double first = values.Pop();
+        //                if (/*+*/)
+        //                {
+        //                    values.Push(first + second);
+        //                }
+        //                else if (/*-*/)
+        //                {
+        //                    values.Push(first - second);
+        //                }
+        //            }
+        //            operators.Push("token");
+        //        }
+        //        else if (/*current token is * or /*/)
+        //        {
+        //            operators.Push("token");
+        //        }
+        //        else if (/*current token is (*/)
+        //        {
+        //            operators.Push("token");
+        //        }
+        //        else if (/*current token is )*/)
+        //        {
+        //            if (/*+ or - at top of operator stack*/)
+        //            {
+        //                double second = values.Pop();
+        //                double first = values.Pop();
+        //                if (/*+*/) {
+        //                    values.Push(first + second);
+        //                }
+        //                else if (/*-*/)
+        //                {
+        //                    values.Push(first - second);
+        //                }
+        //            }
+        //            operators.Pop();
+        //            if (/*/ or * at top of operator stack*/)
+        //            {
+        //                double second = values.Pop();
+        //                double first = values.Pop();
+        //                if (/***/)
+        //                {
+        //                    values.Push(first * second);
+        //                }
+        //                else if (/*/*/)
+        //                {
+        //                    values.Push(first / second);
+        //                }
+        //            }
+        //        }
+        //    }
             return 0;
         }
 
