@@ -223,6 +223,14 @@ namespace Formulas
                 }
                 else if (isVariable(iterator.Current))
                 {
+                    try
+                    {
+                        lookup(iterator.Current);
+                    }
+                    catch (UndefinedVariableException)
+                    {
+                        throw new FormulaEvaluationException("Undefined variable.");
+                    }
                     if ((operators.Count != 0) && operators.Peek().Equals("*"))
                     {
                         operators.Pop();
