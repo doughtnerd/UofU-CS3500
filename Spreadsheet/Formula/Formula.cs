@@ -41,72 +41,144 @@ namespace Formulas
             IEnumerator<string> iterator = GetTokens(formula).GetEnumerator();
             int numberOfOpeningParentheses = 0, numberOfClosingParentheses = 0;
             bool checkNextType1 = false, checkNextType2 = false;
-            double test;
             if (!iterator.MoveNext())
             {
-                throw new FormulaFormatException("More information needed.");
+                throw new FormulaFormatException("More tokens needed.");
             }
-            
-            if (!(double.TryParse(iterator.Current, out test) || Char.IsLetter(iterator.Current.ToCharArray()[0]) || iterator.Current.Equals("(")))
+            if (!(isDouble(iterator.Current) || isVariable(iterator.Current) || iterator.Current.Equals("(")))
             {
-                throw new FormulaFormatException("Invalid first character.");
+                throw new FormulaFormatException("Invalid first token.");
+            }
+            if (isDouble(iterator.Current))
+            {
+                //double
+                checkNextType2 = true;
+            }
+            else if (isVariable(iterator.Current))
+            {
+                //variable
+                checkNextType2 = true;
+            }
+            else if (iterator.Current.Equals("("))
+            {
+                //opening parenthesis
+                numberOfOpeningParentheses++;
+                checkNextType1 = true;
             }
             while (iterator.MoveNext())
             {
-                if (double.TryParse(iterator.Current, out test))
+                if (isDouble(iterator.Current))
                 {
-                    //is number
-                }
-                else if (iterator.Current.Length != 1)
-                {
-                    throw new FormulaFormatException("Invalid character.");
-                }
-                if (checkNextType1)
-                {
-                    if (!(double.TryParse(iterator.Current, out test) || Char.IsLetter(iterator.Current.ToCharArray()[0]) || iterator.Current.Equals('(')))
+                    //double
+                    if (checkNextType1)
                     {
-                        throw new FormulaFormatException("Expected a number, a variable, or an opening parentheses to follow an opening parentheses or an operator.");
+                        checkNextType1 = false;
                     }
-                }
-                if (checkNextType2)
-                {
-                    if (!(iterator.Current.Equals('+') || iterator.Current.Equals('-') || iterator.Current.Equals('*') || iterator.Current.Equals('/') || iterator.Current.Equals(')')))
+                    else if (checkNextType2)
                     {
-                        throw new FormulaFormatException("Expected an operator or a closing parentheses to follow a number, a variable, or a closing parentheses.");
+                        throw new FormulaFormatException("Invalid token combination.");
                     }
-                }
-                if (iterator.Current.Equals('+') || iterator.Current.Equals('-') || iterator.Current.Equals('*') || iterator.Current.Equals('/'))
-                {
-                    checkNextType1 = true;
-                }
-                if (double.TryParse(iterator.Current, out test) || Char.IsLetter(iterator.Current.ToCharArray()[0]))
-                {
                     checkNextType2 = true;
                 }
-                if (iterator.Current.Equals('('))
+                else if (isVariable(iterator.Current))
                 {
-                    checkNextType1 = true;
+                    //variable
+                    if (checkNextType1)
+                    {
+                        checkNextType1 = false;
+                    }
+                    else if (checkNextType2)
+                    {
+                        throw new FormulaFormatException("Invalid token combination.");
+                    }
+                    checkNextType2 = true;
+                }
+                else if (iterator.Current.Equals("("))
+                {
+                    //opening parenthesis
                     numberOfOpeningParentheses++;
+                    if (checkNextType1)
+                    {
+                        checkNextType1 = false;
+                    }
+                    else if (checkNextType2)
+                    {
+                        throw new FormulaFormatException("Invalid token combination.");
+                    }
+                    checkNextType1 = true;
                 }
-                if (iterator.Current.Equals(')'))
+                else if (iterator.Current.Equals(")"))
                 {
-                    checkNextType2 = true;
+                    //closing parenthesis
                     numberOfClosingParentheses++;
+                    if (numberOfClosingParentheses > numberOfOpeningParentheses)
+                    {
+                        throw new FormulaFormatException("Number of closing parentheses exceeded number of opening parentheses.");
+                    }
+                    else if (checkNextType1)
+                    {
+                        throw new FormulaFormatException("Invalid token combination.");
+                    }
+                    else if (checkNextType2)
+                    {
+                        checkNextType2 = false;
+                    }
+                    checkNextType2 = true;
                 }
-                if (numberOfClosingParentheses > numberOfOpeningParentheses)
+                else if (iterator.Current.Equals("+") || iterator.Current.Equals("-") || iterator.Current.Equals("*") || iterator.Current.Equals("/"))
                 {
-                    throw new FormulaFormatException("Number of closing parentheses exceeded number of opening parentheses.");
+                    //operator
+                    if (checkNextType1)
+                    {
+                        throw new FormulaFormatException("Invalid token combination.");
+                    }
+                    if (checkNextType2)
+                    {
+                        checkNextType2 = false;
+                    }
+                    checkNextType1 = true;
                 }
+                else
+                {
+                    //invalid token
+                    throw new FormulaFormatException("Invalid token.");
+                }
+            }
+            if (!(isDouble(iterator.Current) || isVariable(iterator.Current) || iterator.Current.Equals(")")))
+            {
+                throw new FormulaFormatException("Invalid last token.");
             }
             if (numberOfOpeningParentheses != numberOfClosingParentheses)
             {
                 throw new FormulaFormatException("Number of opening parentheses does not match number of closing parentheses.");
             }
-            if (!(double.TryParse(iterator.Current, out test) || Char.IsLetter(iterator.Current.ToCharArray()[0]) || iterator.Current.Equals(")")))
-            {
-                throw new FormulaFormatException("Invalid last character.");
-            }
             this.formula = formula;
+        }
+        /// <summary>
+        /// Tests if a string is a double.
+        /// </summary>
+        public bool isDouble(string formulaPart)
+        {
+            double result;
+            return double.TryParse(formulaPart, out result);
+        }
+        /// <summary>
+        /// Tests if a string is a variable.
+        /// </summary>
+        public bool isVariable(string formulaPart)
+        {
+            if (char.IsLetter(formulaPart.ToCharArray()[0]))
+            {
+                foreach (char character in formulaPart)
+                {
+                    if (!char.IsLetterOrDigit(character))
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }
+            return false;
         }
         /// <summary>
         /// Evaluates this Formula, using the Lookup delegate to determine the values of variables.  (The
@@ -119,72 +191,72 @@ namespace Formulas
         /// </summary>
         public double Evaluate(Lookup lookup)
         {
+            if (formula.Equals(null))
+            {
+                throw new FormulaEvaluationException("Invalid formula.");
+            }
             IEnumerator<string> iterator = GetTokens(formula).GetEnumerator();
             Stack<double> values = new Stack<double>();
             Stack<string> operators = new Stack<string>();
             while (iterator.MoveNext())
             {
-                double value;
-                if (Double.TryParse(iterator.Current, out value))
+                if (isDouble(iterator.Current))
                 {
-                    string top = operators.Peek();
-                    if (top.Equals("*") || top.Equals("/"))
+                    if ((operators.Count != 0) && operators.Peek().Equals("*"))
                     {
-                        double first = values.Pop();
-                        if (top.Equals("*"))
+                        operators.Pop();
+                        values.Push(values.Pop() * double.Parse(iterator.Current));
+                    }
+                    else if ((operators.Count != 0) && operators.Peek().Equals("/"))
+                    {
+                        if (double.Parse(iterator.Current) == 0)
                         {
-                            operators.Pop();
-                            values.Push(first * value);
+                            throw new FormulaEvaluationException("Divide by zero error.");
                         }
-                        else if (top.Equals("/"))
-                        {
-                            operators.Pop();
-                            values.Push(first / value);
-                        }
+                        operators.Pop();
+                        values.Push(values.Pop() / double.Parse(iterator.Current));
                     }
                     else
                     {
-                        values.Push(value);
+                        values.Push(double.Parse(iterator.Current));
                     }
                 }
-                else if (Char.IsLetter(iterator.Current.ToCharArray()[0]))
+                else if (isVariable(iterator.Current))
                 {
-                    value = lookup(iterator.Current);
-                    string top = operators.Peek();
-                    if (top.Equals("*") || top.Equals("/"))
+                    if ((operators.Count != 0) && operators.Peek().Equals("*"))
                     {
-                        double first = values.Pop();
-                        if (top.Equals("*"))
+                        operators.Pop();
+                        values.Push(values.Pop() * lookup(iterator.Current));
+                    }
+                    else if ((operators.Count != 0) && operators.Peek().Equals("/"))
+                    {
+                        if (lookup(iterator.Current) == 0)
                         {
-                            operators.Pop();
-                            values.Push(first * value);
+                            throw new FormulaEvaluationException("Divide by zero error.");
                         }
-                        else if (top.Equals("/"))
-                        {
-                            operators.Pop();
-                            values.Push(first / value);
-                        }
+                        operators.Pop();
+                        values.Push(values.Pop() / lookup(iterator.Current));
                     }
                     else
                     {
-                        values.Push(value);
+                        values.Push(lookup(iterator.Current));
                     }
                 }
                 else if (iterator.Current.Equals("+") || iterator.Current.Equals("-"))
                 {
-                    string top = operators.Peek();
-                    if (top.Equals("+") || top.Equals("-"))
+                    if ((operators.Count != 0) && operators.Peek().Equals("+"))
                     {
                         double second = values.Pop();
                         double first = values.Pop();
-                        if (top.Equals("+"))
-                        {
-                            values.Push(first + second);
-                        }
-                        else if (top.Equals("-"))
-                        {
-                            values.Push(first - second);
-                        }
+                        operators.Pop();
+                        values.Push(first + second);
+                    }
+                    else if ((operators.Count != 0) && operators.Peek().Equals("-"))
+                    {
+                        double second = values.Pop();
+                        double first = values.Pop();
+                        operators.Pop();
+                        values.Push(first - second);
                     }
                     operators.Push(iterator.Current);
                 }
@@ -198,47 +270,55 @@ namespace Formulas
                 }
                 else if (iterator.Current.Equals(")"))
                 {
-                    string top = operators.Peek();
-                    if (top.Equals("+") || top.Equals("-"))
+                    if ((operators.Count != 0) && operators.Peek().Equals("+"))
                     {
                         double second = values.Pop();
                         double first = values.Pop();
-                        if (top.Equals("+"))
-                        {
-                            values.Push(first + second);
-                        }
-                        else if (top.Equals("-"))
-                        {
-                            values.Push(first - second);
-                        }
+                        operators.Pop();
+                        values.Push(first + second);
+                    }
+                    else if ((operators.Count != 0) && operators.Peek().Equals("-"))
+                    {
+                        double second = values.Pop();
+                        double first = values.Pop();
+                        operators.Pop();
+                        values.Push(first - second);
                     }
                     operators.Pop();
-                    if (top.Equals("*") || top.Equals("/"))
+                    if ((operators.Count != 0) && operators.Peek().Equals("*"))
                     {
                         double second = values.Pop();
                         double first = values.Pop();
-                        if (top.Equals("*"))
+                        operators.Pop();
+                        values.Push(first * second);
+                    }
+                    else if ((operators.Count != 0) && operators.Peek().Equals("/"))
+                    {
+                        double second = values.Pop();
+                        if (second == 0)
                         {
-                            values.Push(first * second);
+                            throw new FormulaEvaluationException("Divide by zero error.");
                         }
-                        else if (top.Equals("/"))
-                        {
-                            values.Push(first / second);
-                        }
+                        double first = values.Pop();
+                        operators.Pop();
+                        values.Push(first / second);
                     }
                 }
             }
             if (operators.Count != 0)
             {
-                string top = operators.Pop();
-                double second = values.Pop();
-                double first = values.Pop();
-                if (top.Equals("+"))
+                if (operators.Peek().Equals("+"))
                 {
+                    double second = values.Pop();
+                    double first = values.Pop();
+                    operators.Pop();
                     return first + second;
                 }
-                else if (top.Equals("-"))
+                else if (operators.Peek().Equals("-"))
                 {
+                    double second = values.Pop();
+                    double first = values.Pop();
+                    operators.Pop();
                     return first - second;
                 }
             }
