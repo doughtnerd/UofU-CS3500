@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections;
 
 namespace Dependencies
 {
@@ -48,11 +49,15 @@ namespace Dependencies
     /// </summary>
     public class DependencyGraph
     {
+
+        private Hashtable dependencies;
+
         /// <summary>
         /// Creates a DependencyGraph containing no dependencies.
         /// </summary>
         public DependencyGraph()
         {
+            dependencies = new Hashtable();
         }
 
         /// <summary>
@@ -60,7 +65,7 @@ namespace Dependencies
         /// </summary>
         public int Size
         {
-            get { return 0; }
+            get { return dependencies.Count; }
         }
 
         /// <summary>
@@ -68,6 +73,7 @@ namespace Dependencies
         /// </summary>
         public bool HasDependents(string s)
         {
+            dependencies[s]
             return false;
         }
 
@@ -102,6 +108,21 @@ namespace Dependencies
         /// </summary>
         public void AddDependency(string s, string t)
         {
+            if (s.Equals(null) || t.Equals(null))
+            {
+            }
+            else {
+                if (!dependencies.Contains(s.GetHashCode()))
+                {
+                    dependencies.Add(s.GetHashCode(), new Dependency(s));
+                }
+                ((Dependency)dependencies[s.GetHashCode()]).addDependency(t);
+                if (!dependencies.Contains(t.GetHashCode()))
+                {
+                    dependencies.Add(t.GetHashCode(), new Dependency(t));
+                }
+                ((Dependency)dependencies[t.GetHashCode()]).addDependee(s);
+            }
         }
 
         /// <summary>
@@ -129,6 +150,25 @@ namespace Dependencies
         /// </summary>
         public void ReplaceDependees(string t, IEnumerable<string> newDependees)
         {
+        }
+
+        private class Dependency
+        {
+            private string dependency;
+            private Hashtable dependents;
+            private Hashtable dependees;
+            public Dependency(string s)
+            {
+                dependency = s;
+            }
+            public void addDependency(string s)
+            {
+                dependents.Add(s.GetHashCode(), s);
+            }
+            public void addDependee(string s)
+            {
+                dependees.Add(s.GetHashCode(), s);
+            }
         }
     }
 }
