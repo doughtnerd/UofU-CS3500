@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections;
 
 namespace Dependencies
 {
@@ -50,14 +49,14 @@ namespace Dependencies
     public class DependencyGraph
     {
 
-        private Hashtable dependencies;
+        private Dictionary<int, Dependency> dependencies;
 
         /// <summary>
         /// Creates a DependencyGraph containing no dependencies.
         /// </summary>
         public DependencyGraph()
         {
-            dependencies = new Hashtable();
+            dependencies = new Dictionary<int, Dependency>();
         }
 
         /// <summary>
@@ -73,8 +72,7 @@ namespace Dependencies
         /// </summary>
         public bool HasDependents(string s)
         {
-            dependencies[s]
-            return false;
+            return dependencies[s.GetHashCode()].getDependents().Count > 0;
         }
 
         /// <summary>
@@ -82,7 +80,7 @@ namespace Dependencies
         /// </summary>
         public bool HasDependees(string s)
         {
-            return false;
+            return dependencies[s.GetHashCode()].getDependees().Count > 0;
         }
 
         /// <summary>
@@ -90,7 +88,7 @@ namespace Dependencies
         /// </summary>
         public IEnumerable<string> GetDependents(string s)
         {
-            return null;
+            return dependencies[s.GetHashCode()].getDependents().Values;
         }
 
         /// <summary>
@@ -98,7 +96,7 @@ namespace Dependencies
         /// </summary>
         public IEnumerable<string> GetDependees(string s)
         {
-            return null;
+            return dependencies[s.GetHashCode()].getDependees().Values;
         }
 
         /// <summary>
@@ -108,20 +106,21 @@ namespace Dependencies
         /// </summary>
         public void AddDependency(string s, string t)
         {
-            if (s.Equals(null) || t.Equals(null))
+            if (!dependencies.ContainsKey(s.GetHashCode()))
             {
+                dependencies.Add(s.GetHashCode(), new Dependency(s));
             }
-            else {
-                if (!dependencies.Contains(s.GetHashCode()))
-                {
-                    dependencies.Add(s.GetHashCode(), new Dependency(s));
-                }
-                ((Dependency)dependencies[s.GetHashCode()]).addDependency(t);
-                if (!dependencies.Contains(t.GetHashCode()))
-                {
-                    dependencies.Add(t.GetHashCode(), new Dependency(t));
-                }
-                ((Dependency)dependencies[t.GetHashCode()]).addDependee(s);
+            if (!dependencies[s.GetHashCode()].checkDependents(t))
+            {
+                dependencies[s.GetHashCode()].addDependent(t);
+            }
+            if (!dependencies.ContainsKey(t.GetHashCode()))
+            {
+                dependencies.Add(t.GetHashCode(), new Dependency(t));
+            }
+            if (!dependencies[t.GetHashCode()].checkDependees(s))
+            {
+                dependencies[t.GetHashCode()].addDependee(s);
             }
         }
 
@@ -132,6 +131,14 @@ namespace Dependencies
         /// </summary>
         public void RemoveDependency(string s, string t)
         {
+            if (dependencies.ContainsKey(s.GetHashCode()))
+            {
+                if (dependencies[s.GetHashCode()].checkDependents(t))
+                {
+                    dependencies[s.GetHashCode()].removeDependent(t);
+                    dependencies[t.GetHashCode()].removeDependee(s);
+                }
+            }
         }
 
         /// <summary>
@@ -141,6 +148,12 @@ namespace Dependencies
         /// </summary>
         public void ReplaceDependents(string s, IEnumerable<string> newDependents)
         {
+            dependencies[s.GetHashCode()].getDependents().Clear();
+            IEnumerator<string> iterator = newDependents.GetEnumerator();
+            while (iterator.MoveNext())
+            {
+                AddDependency(s, iterator.Current);
+            }
         }
 
         /// <summary>
@@ -150,24 +163,56 @@ namespace Dependencies
         /// </summary>
         public void ReplaceDependees(string t, IEnumerable<string> newDependees)
         {
+            dependencies[t.GetHashCode()].getDependees().Clear();
+            IEnumerator<string> iterator = newDependees.GetEnumerator();
+            while (iterator.MoveNext())
+            {
+                AddDependency(iterator.Current, t);
+            }
         }
 
         private class Dependency
         {
             private string dependency;
-            private Hashtable dependents;
-            private Hashtable dependees;
+            private Dictionary<int, string> dependents;
+            private Dictionary<int, string> dependees;
             public Dependency(string s)
             {
                 dependency = s;
+                dependents = new Dictionary<int, string>();
+                dependees = new Dictionary<int, string>();
             }
-            public void addDependency(string s)
+            public void addDependent(string s)
             {
                 dependents.Add(s.GetHashCode(), s);
             }
             public void addDependee(string s)
             {
                 dependees.Add(s.GetHashCode(), s);
+            }
+            public void removeDependent(string s)
+            {
+                dependents.Remove(s.GetHashCode());
+            }
+            public void removeDependee(string s)
+            {
+                dependees.Remove(s.GetHashCode());
+            }
+            public Dictionary<int, string> getDependents()
+            {
+                return dependents;
+            }
+            public Dictionary<int, string> getDependees()
+            {
+                return dependees;
+            }
+            public bool checkDependents(string s)
+            {
+                return dependents.ContainsKey(s.GetHashCode());
+            }
+            public bool checkDependees(string s)
+            {
+                return dependees.ContainsKey(s.GetHashCode());
             }
         }
     }
