@@ -48,7 +48,9 @@ namespace Dependencies
     /// </summary>
     public class DependencyGraph
     {
-
+        /// <summary>
+        /// A dictionary that stores dependencies using a key.
+        /// </summary>
         private Dictionary<int, Dependency> dependencies;
 
         /// <summary>
@@ -171,45 +173,87 @@ namespace Dependencies
             }
         }
 
+        /// <summary>
+        /// Used to represent a dependency.
+        /// </summary>
         private class Dependency
         {
+            /// <summary>
+            /// Variables that hold the string representing the dependency and its dependents and dependees.
+            /// </summary>
             private string dependency;
             private Dictionary<int, string> dependents;
             private Dictionary<int, string> dependees;
+
+            /// <summary>
+            /// 
+            /// </summary>
             public Dependency(string s)
             {
                 dependency = s;
                 dependents = new Dictionary<int, string>();
                 dependees = new Dictionary<int, string>();
             }
+
+            /// <summary>
+            /// Adds a dependent to the dependent dictionary.
+            /// </summary>
             public void addDependent(string s)
             {
                 dependents.Add(s.GetHashCode(), s);
             }
+
+            /// <summary>
+            /// Adds a dependee to the dependee dictionary.
+            /// </summary>
             public void addDependee(string s)
             {
                 dependees.Add(s.GetHashCode(), s);
             }
+
+            /// <summary>
+            /// Removes a dependent from the dependent dictionary.
+            /// </summary>
             public void removeDependent(string s)
             {
                 dependents.Remove(s.GetHashCode());
             }
+
+            /// <summary>
+            /// Removes a dependee from the dependee dictionary.
+            /// </summary>
             public void removeDependee(string s)
             {
                 dependees.Remove(s.GetHashCode());
             }
+
+            /// <summary>
+            /// Returns dependents as a dictionary.
+            /// </summary>
             public Dictionary<int, string> getDependents()
             {
                 return dependents;
             }
+
+            /// <summary>
+            /// Returns dependees as a dictionary.
+            /// </summary>
             public Dictionary<int, string> getDependees()
             {
                 return dependees;
             }
+
+            /// <summary>
+            /// Checks dependents dictionary for a certain string value.
+            /// </summary>
             public bool checkDependents(string s)
             {
                 return dependents.ContainsKey(s.GetHashCode());
             }
+
+            /// <summary>
+            /// Checks dependees dictionary for a certain string value.
+            /// </summary>
             public bool checkDependees(string s)
             {
                 return dependees.ContainsKey(s.GetHashCode());

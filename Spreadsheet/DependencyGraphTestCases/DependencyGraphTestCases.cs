@@ -10,23 +10,24 @@ namespace Dependencies
     [TestClass]
     public class DependencyGraphTestCases
     {
-        [TestMethod]
-        public void Test()
-        {
-            DependencyGraph dg = new DependencyGraph();
-            dg.AddDependency("a", "b");
-            dg.AddDependency("a", "c");
-            dg.AddDependency("a", "d");
-            dg.AddDependency("b", "a");
-            dg.AddDependency("b", "c");
-            dg.AddDependency("b", "d");
-            dg.AddDependency("c", "a");
-            dg.AddDependency("c", "b");
-            dg.AddDependency("c", "d");
-            dg.AddDependency("d", "a");
-            dg.AddDependency("d", "b");
-            dg.AddDependency("d", "c");
-        }
+        //[TestMethod]
+        //public void Test()
+        //{
+        //    int a = "a".GetHashCode(), b = "b".GetHashCode(), c = "c".GetHashCode(), d = "d".GetHashCode();
+        //    DependencyGraph dg = new DependencyGraph();
+        //    dg.AddDependency("a", "b");
+        //    dg.AddDependency("a", "c");
+        //    dg.AddDependency("a", "d");
+        //    dg.AddDependency("b", "a");
+        //    dg.AddDependency("b", "c");
+        //    dg.AddDependency("b", "d");
+        //    dg.AddDependency("c", "a");
+        //    dg.AddDependency("c", "b");
+        //    dg.AddDependency("c", "d");
+        //    dg.AddDependency("d", "a");
+        //    dg.AddDependency("d", "b");
+        //    dg.AddDependency("d", "c");
+        //}
 
         /// <summary>
         /// Tests constructor.
@@ -410,6 +411,22 @@ namespace Dependencies
                 char char1 = (char)((random.NextDouble() * 25) + 97);
                 char char2 = (char)((random.NextDouble() * 25) + 97);
                 dg.AddDependency("" + char1, "" + char2);
+            }
+            List<string> toReplace = new List<string>();
+            toReplace.Add("a");
+            for (int i = 0; i < 10000; i++)
+            {
+                char char1 = (char)((random.NextDouble() * 25) + 97);
+                char char2 = (char)((random.NextDouble() * 25) + 97);
+                if (dg.HasDependents("" + char1))
+                {
+                    dg.ReplaceDependents("" + char1, toReplace);
+                }
+                if (dg.HasDependees("" + char1))
+                {
+                    dg.ReplaceDependees("" + char1, toReplace);
+                }
+                dg.RemoveDependency("" + char1, "" + char2);
             }
         }
     }
