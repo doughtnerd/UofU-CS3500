@@ -74,7 +74,7 @@ namespace Dependencies
         /// </summary>
         public bool HasDependents(string s)
         {
-            return dependencies[s.GetHashCode()].getDependents().Count > 0;
+            return dependencies[s.GetHashCode()].GetDependents().Count > 0;
         }
 
         /// <summary>
@@ -82,7 +82,7 @@ namespace Dependencies
         /// </summary>
         public bool HasDependees(string s)
         {
-            return dependencies[s.GetHashCode()].getDependees().Count > 0;
+            return dependencies[s.GetHashCode()].GetDependees().Count > 0;
         }
 
         /// <summary>
@@ -90,7 +90,7 @@ namespace Dependencies
         /// </summary>
         public IEnumerable<string> GetDependents(string s)
         {
-            return dependencies[s.GetHashCode()].getDependents().Values;
+            return dependencies[s.GetHashCode()].GetDependents().Values;
         }
 
         /// <summary>
@@ -98,7 +98,7 @@ namespace Dependencies
         /// </summary>
         public IEnumerable<string> GetDependees(string s)
         {
-            return dependencies[s.GetHashCode()].getDependees().Values;
+            return dependencies[s.GetHashCode()].GetDependees().Values;
         }
 
         /// <summary>
@@ -112,17 +112,17 @@ namespace Dependencies
             {
                 dependencies.Add(s.GetHashCode(), new Dependency(s));
             }
-            if (!dependencies[s.GetHashCode()].checkDependents(t))
+            if (!dependencies[s.GetHashCode()].CheckDependents(t))
             {
-                dependencies[s.GetHashCode()].addDependent(t);
+                dependencies[s.GetHashCode()].AddDependent(t);
             }
             if (!dependencies.ContainsKey(t.GetHashCode()))
             {
                 dependencies.Add(t.GetHashCode(), new Dependency(t));
             }
-            if (!dependencies[t.GetHashCode()].checkDependees(s))
+            if (!dependencies[t.GetHashCode()].CheckDependees(s))
             {
-                dependencies[t.GetHashCode()].addDependee(s);
+                dependencies[t.GetHashCode()].AddDependee(s);
             }
         }
 
@@ -135,10 +135,10 @@ namespace Dependencies
         {
             if (dependencies.ContainsKey(s.GetHashCode()))
             {
-                if (dependencies[s.GetHashCode()].checkDependents(t))
+                if (dependencies[s.GetHashCode()].CheckDependents(t))
                 {
-                    dependencies[s.GetHashCode()].removeDependent(t);
-                    dependencies[t.GetHashCode()].removeDependee(s);
+                    dependencies[s.GetHashCode()].RemoveDependent(t);
+                    dependencies[t.GetHashCode()].RemoveDependee(s);
                 }
             }
         }
@@ -150,7 +150,7 @@ namespace Dependencies
         /// </summary>
         public void ReplaceDependents(string s, IEnumerable<string> newDependents)
         {
-            dependencies[s.GetHashCode()].getDependents().Clear();
+            dependencies[s.GetHashCode()].GetDependents().Clear();
             IEnumerator<string> iterator = newDependents.GetEnumerator();
             while (iterator.MoveNext())
             {
@@ -165,7 +165,7 @@ namespace Dependencies
         /// </summary>
         public void ReplaceDependees(string t, IEnumerable<string> newDependees)
         {
-            dependencies[t.GetHashCode()].getDependees().Clear();
+            dependencies[t.GetHashCode()].GetDependees().Clear();
             IEnumerator<string> iterator = newDependees.GetEnumerator();
             while (iterator.MoveNext())
             {
@@ -198,7 +198,7 @@ namespace Dependencies
             /// <summary>
             /// Adds a dependent to the dependent dictionary.
             /// </summary>
-            public void addDependent(string s)
+            public void AddDependent(string s)
             {
                 dependents.Add(s.GetHashCode(), s);
             }
@@ -206,7 +206,7 @@ namespace Dependencies
             /// <summary>
             /// Adds a dependee to the dependee dictionary.
             /// </summary>
-            public void addDependee(string s)
+            public void AddDependee(string s)
             {
                 dependees.Add(s.GetHashCode(), s);
             }
@@ -214,7 +214,7 @@ namespace Dependencies
             /// <summary>
             /// Removes a dependent from the dependent dictionary.
             /// </summary>
-            public void removeDependent(string s)
+            public void RemoveDependent(string s)
             {
                 dependents.Remove(s.GetHashCode());
             }
@@ -222,7 +222,7 @@ namespace Dependencies
             /// <summary>
             /// Removes a dependee from the dependee dictionary.
             /// </summary>
-            public void removeDependee(string s)
+            public void RemoveDependee(string s)
             {
                 dependees.Remove(s.GetHashCode());
             }
@@ -230,7 +230,7 @@ namespace Dependencies
             /// <summary>
             /// Returns dependents as a dictionary.
             /// </summary>
-            public Dictionary<int, string> getDependents()
+            public Dictionary<int, string> GetDependents()
             {
                 return dependents;
             }
@@ -238,7 +238,7 @@ namespace Dependencies
             /// <summary>
             /// Returns dependees as a dictionary.
             /// </summary>
-            public Dictionary<int, string> getDependees()
+            public Dictionary<int, string> GetDependees()
             {
                 return dependees;
             }
@@ -246,7 +246,7 @@ namespace Dependencies
             /// <summary>
             /// Checks dependents dictionary for a certain string value.
             /// </summary>
-            public bool checkDependents(string s)
+            public bool CheckDependents(string s)
             {
                 return dependents.ContainsKey(s.GetHashCode());
             }
@@ -254,7 +254,7 @@ namespace Dependencies
             /// <summary>
             /// Checks dependees dictionary for a certain string value.
             /// </summary>
-            public bool checkDependees(string s)
+            public bool CheckDependees(string s)
             {
                 return dependees.ContainsKey(s.GetHashCode());
             }
