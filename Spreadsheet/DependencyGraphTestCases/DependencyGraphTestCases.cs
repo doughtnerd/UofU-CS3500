@@ -59,7 +59,7 @@ namespace Dependencies
             dg.AddDependency("b", "c");
             dg.AddDependency("b", "d");
             dg.AddDependency("c", "d");
-            Assert.AreEqual(4, dg.Size);
+            Assert.AreEqual(6, dg.Size);
         }
         /// <summary>
         /// Tests if a dependency has dependents when it has dependents.
@@ -414,7 +414,9 @@ namespace Dependencies
             }
             List<string> toReplace = new List<string>();
             toReplace.Add("a");
-            for (int i = 0; i < 10000; i++)
+            toReplace.Add("b");
+            toReplace.Add("c");
+            for (int i = 0; i < 100000; i++)
             {
                 char char1 = (char)((random.NextDouble() * 25) + 97);
                 char char2 = (char)((random.NextDouble() * 25) + 97);
@@ -426,6 +428,42 @@ namespace Dependencies
                 {
                     dg.ReplaceDependees("" + char1, toReplace);
                 }
+                dg.RemoveDependency("" + char1, "" + char2);
+            }
+            for (int i = 0; i < 100000; i++)
+            {
+                char char1 = (char)((random.NextDouble() * 25) + 97);
+                char char2 = (char)((random.NextDouble() * 25) + 97);
+                dg.RemoveDependency("" + char1, "" + char2);
+            }
+            for (int i = 0; i < 100000; i++)
+            {
+                char char1 = (char)((random.NextDouble() * 25) + 97);
+                char char2 = (char)((random.NextDouble() * 25) + 97);
+                dg.AddDependency("" + char1, "" + char2);
+            }
+            toReplace = new List<string>();
+            toReplace.Add("a");
+            toReplace.Add("b");
+            toReplace.Add("c");
+            for (int i = 0; i < 100000; i++)
+            {
+                char char1 = (char)((random.NextDouble() * 25) + 97);
+                char char2 = (char)((random.NextDouble() * 25) + 97);
+                if (dg.HasDependents("" + char1))
+                {
+                    dg.ReplaceDependents("" + char1, toReplace);
+                }
+                if (dg.HasDependees("" + char1))
+                {
+                    dg.ReplaceDependees("" + char1, toReplace);
+                }
+                dg.RemoveDependency("" + char1, "" + char2);
+            }
+            for (int i = 0; i < 100000; i++)
+            {
+                char char1 = (char)((random.NextDouble() * 25) + 97);
+                char char2 = (char)((random.NextDouble() * 25) + 97);
                 dg.RemoveDependency("" + char1, "" + char2);
             }
         }

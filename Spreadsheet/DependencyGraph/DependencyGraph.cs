@@ -52,6 +52,10 @@ namespace Dependencies
         /// A dictionary that stores dependencies using a key.
         /// </summary>
         private Dictionary<int, Dependency> dependencies;
+        /// <summary>
+        /// The number of dependencies.
+        /// </summary>
+        private int count;
 
         /// <summary>
         /// Creates a DependencyGraph containing no dependencies.
@@ -59,6 +63,7 @@ namespace Dependencies
         public DependencyGraph()
         {
             dependencies = new Dictionary<int, Dependency>();
+            count = 0;
         }
 
         /// <summary>
@@ -66,7 +71,7 @@ namespace Dependencies
         /// </summary>
         public int Size
         {
-            get { return dependencies.Count; }
+            get { return count; }
         }
 
         /// <summary>
@@ -74,7 +79,11 @@ namespace Dependencies
         /// </summary>
         public bool HasDependents(string s)
         {
-            return dependencies[s.GetHashCode()].GetDependents().Count > 0;
+            if (CheckDependencies(s))
+            {
+                return dependencies[s.GetHashCode()].GetDependents().Count > 0;
+            }
+            return false;
         }
 
         /// <summary>
@@ -82,7 +91,11 @@ namespace Dependencies
         /// </summary>
         public bool HasDependees(string s)
         {
-            return dependencies[s.GetHashCode()].GetDependees().Count > 0;
+            if (CheckDependencies(s))
+            {
+                return dependencies[s.GetHashCode()].GetDependees().Count > 0;
+            }
+            return false;
         }
 
         /// <summary>
@@ -90,7 +103,11 @@ namespace Dependencies
         /// </summary>
         public IEnumerable<string> GetDependents(string s)
         {
-            return dependencies[s.GetHashCode()].GetDependents().Values;
+            if (CheckDependencies(s))
+            {
+                return dependencies[s.GetHashCode()].GetDependents().Values;
+            }
+            return new List<string>();
         }
 
         /// <summary>
@@ -98,7 +115,11 @@ namespace Dependencies
         /// </summary>
         public IEnumerable<string> GetDependees(string s)
         {
-            return dependencies[s.GetHashCode()].GetDependees().Values;
+            if (CheckDependencies(s))
+            {
+                return dependencies[s.GetHashCode()].GetDependees().Values;
+            }
+            return new List<string>();
         }
 
         /// <summary>
@@ -108,15 +129,16 @@ namespace Dependencies
         /// </summary>
         public void AddDependency(string s, string t)
         {
-            if (!dependencies.ContainsKey(s.GetHashCode()))
+            if (!CheckDependencies(s))
             {
                 dependencies.Add(s.GetHashCode(), new Dependency(s));
             }
             if (!dependencies[s.GetHashCode()].CheckDependents(t))
             {
                 dependencies[s.GetHashCode()].AddDependent(t);
+                count++;
             }
-            if (!dependencies.ContainsKey(t.GetHashCode()))
+            if (!CheckDependencies(t))
             {
                 dependencies.Add(t.GetHashCode(), new Dependency(t));
             }
@@ -133,12 +155,13 @@ namespace Dependencies
         /// </summary>
         public void RemoveDependency(string s, string t)
         {
-            if (dependencies.ContainsKey(s.GetHashCode()))
+            if (CheckDependencies(s))
             {
                 if (dependencies[s.GetHashCode()].CheckDependents(t))
                 {
                     dependencies[s.GetHashCode()].RemoveDependent(t);
                     dependencies[t.GetHashCode()].RemoveDependee(s);
+                    count--;
                 }
             }
         }
@@ -150,11 +173,24 @@ namespace Dependencies
         /// </summary>
         public void ReplaceDependents(string s, IEnumerable<string> newDependents)
         {
-            dependencies[s.GetHashCode()].GetDependents().Clear();
-            IEnumerator<string> iterator = newDependents.GetEnumerator();
-            while (iterator.MoveNext())
+            if (CheckDependencies(s))
             {
-                AddDependency(s, iterator.Current);
+                List<string> oldDependents = new List<string>();
+                IEnumerator<string> iterator = GetDependents(s).GetEnumerator();
+                while (iterator.MoveNext())
+                {
+                    oldDependents.Add(iterator.Current);
+                }
+                iterator = oldDependents.GetEnumerator();
+                while (iterator.MoveNext())
+                {
+                    RemoveDependency(s, iterator.Current);
+                }
+                iterator = newDependents.GetEnumerator();
+                while (iterator.MoveNext())
+                {
+                    AddDependency(s, iterator.Current);
+                }
             }
         }
 
@@ -165,12 +201,33 @@ namespace Dependencies
         /// </summary>
         public void ReplaceDependees(string t, IEnumerable<string> newDependees)
         {
-            dependencies[t.GetHashCode()].GetDependees().Clear();
-            IEnumerator<string> iterator = newDependees.GetEnumerator();
-            while (iterator.MoveNext())
+            if (CheckDependencies(t))
             {
-                AddDependency(iterator.Current, t);
+                List<string> oldDependees = new List<string>();
+                IEnumerator<string> iterator = GetDependees(t).GetEnumerator();
+                while (iterator.MoveNext())
+                {
+                    oldDependees.Add(iterator.Current);
+                }
+                iterator = oldDependees.GetEnumerator();
+                while (iterator.MoveNext())
+                {
+                    RemoveDependency(iterator.Current, t);
+                }
+                iterator = newDependees.GetEnumerator();
+                while (iterator.MoveNext())
+                {
+                    AddDependency(iterator.Current, t);
+                }
             }
+        }
+
+        /// <summary>
+        /// Checks dependency dictionary for specified string.
+        /// </summary>
+        public bool CheckDependencies(string s)
+        {
+            return dependencies.ContainsKey(s.GetHashCode());
         }
 
         /// <summary>
