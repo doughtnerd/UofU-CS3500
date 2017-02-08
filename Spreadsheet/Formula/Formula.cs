@@ -45,16 +45,16 @@ namespace Formulas
             {
                 throw new FormulaFormatException("More tokens needed.");
             }
-            if (!(isDouble(iterator.Current) || isVariable(iterator.Current) || iterator.Current.Equals("(")))
+            if (!(IsDouble(iterator.Current) || IsVariable(iterator.Current) || iterator.Current.Equals("(")))
             {
                 throw new FormulaFormatException("Invalid first token.");
             }
-            if (isDouble(iterator.Current))
+            if (IsDouble(iterator.Current))
             {
                 //double
                 checkNextType2 = true;
             }
-            else if (isVariable(iterator.Current))
+            else if (IsVariable(iterator.Current))
             {
                 //variable
                 checkNextType2 = true;
@@ -67,7 +67,7 @@ namespace Formulas
             }
             while (iterator.MoveNext())
             {
-                if (isDouble(iterator.Current))
+                if (IsDouble(iterator.Current))
                 {
                     //double
                     if (checkNextType1)
@@ -80,7 +80,7 @@ namespace Formulas
                     }
                     checkNextType2 = true;
                 }
-                else if (isVariable(iterator.Current))
+                else if (IsVariable(iterator.Current))
                 {
                     //variable
                     if (checkNextType1)
@@ -144,7 +144,7 @@ namespace Formulas
                     throw new FormulaFormatException("Invalid token.");
                 }
             }
-            if (!(isDouble(iterator.Current) || isVariable(iterator.Current) || iterator.Current.Equals(")")))
+            if (!(IsDouble(iterator.Current) || IsVariable(iterator.Current) || iterator.Current.Equals(")")))
             {
                 throw new FormulaFormatException("Invalid last token.");
             }
@@ -157,7 +157,7 @@ namespace Formulas
         /// <summary>
         /// Tests if a string is a double.
         /// </summary>
-        public bool isDouble(string formulaPart)
+        public bool IsDouble(string formulaPart)
         {
             double result;
             return double.TryParse(formulaPart, out result);
@@ -165,7 +165,7 @@ namespace Formulas
         /// <summary>
         /// Tests if a string is a variable.
         /// </summary>
-        public bool isVariable(string formulaPart)
+        public bool IsVariable(string formulaPart)
         {
             if (char.IsLetter(formulaPart.ToCharArray()[0]))
             {
@@ -200,7 +200,7 @@ namespace Formulas
             Stack<string> operators = new Stack<string>();
             while (iterator.MoveNext())
             {
-                if (isDouble(iterator.Current))
+                if (IsDouble(iterator.Current))
                 {
                     if ((operators.Count != 0) && operators.Peek().Equals("*"))
                     {
@@ -221,7 +221,7 @@ namespace Formulas
                         values.Push(double.Parse(iterator.Current));
                     }
                 }
-                else if (isVariable(iterator.Current))
+                else if (IsVariable(iterator.Current))
                 {
                     try
                     {
