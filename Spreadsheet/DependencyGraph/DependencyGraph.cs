@@ -67,6 +67,20 @@ namespace Dependencies
         }
 
         /// <summary>
+        /// Creates a DependencyGraph from a provided DependencyGraph. Throws ArgumentNullException
+        /// if parameter is null.
+        /// </summary>
+        public DependencyGraph(DependencyGraph dg)
+        {
+            if (dg == null)
+            {
+                throw new ArgumentNullException();
+            }
+            dependencies = dg.dependencies;
+            count = dg.count;
+        }
+
+        /// <summary>
         /// The number of dependencies in the DependencyGraph.
         /// </summary>
         public int Size
@@ -79,6 +93,10 @@ namespace Dependencies
         /// </summary>
         public bool HasDependents(string s)
         {
+            if (s == null)
+            {
+                throw new ArgumentNullException();
+            }
             if (CheckDependencies(s))
             {
                 return dependencies[s.GetHashCode()].GetDependents().Count > 0;
@@ -91,6 +109,10 @@ namespace Dependencies
         /// </summary>
         public bool HasDependees(string s)
         {
+            if (s == null)
+            {
+                throw new ArgumentNullException();
+            }
             if (CheckDependencies(s))
             {
                 return dependencies[s.GetHashCode()].GetDependees().Count > 0;
@@ -103,6 +125,10 @@ namespace Dependencies
         /// </summary>
         public IEnumerable<string> GetDependents(string s)
         {
+            if (s == null)
+            {
+                throw new ArgumentNullException();
+            }
             if (CheckDependencies(s))
             {
                 return dependencies[s.GetHashCode()].GetDependents().Values;
@@ -115,6 +141,10 @@ namespace Dependencies
         /// </summary>
         public IEnumerable<string> GetDependees(string s)
         {
+            if (s == null)
+            {
+                throw new ArgumentNullException();
+            }
             if (CheckDependencies(s))
             {
                 return dependencies[s.GetHashCode()].GetDependees().Values;
@@ -129,6 +159,10 @@ namespace Dependencies
         /// </summary>
         public void AddDependency(string s, string t)
         {
+            if (s == null || t == null)
+            {
+                throw new ArgumentNullException();
+            }
             if (!CheckDependencies(s))
             {
                 dependencies.Add(s.GetHashCode(), new Dependency(s));
@@ -155,6 +189,10 @@ namespace Dependencies
         /// </summary>
         public void RemoveDependency(string s, string t)
         {
+            if (s == null || t == null)
+            {
+                throw new ArgumentNullException();
+            }
             if (CheckDependencies(s))
             {
                 if (dependencies[s.GetHashCode()].CheckDependents(t))
@@ -169,10 +207,14 @@ namespace Dependencies
         /// <summary>
         /// Removes all existing dependencies of the form (s,r).  Then, for each
         /// t in newDependents, adds the dependency (s,t).
-        /// Requires s != null and t != null.
+        /// Requires s != null and t != null. NewDependents cannot be or contain null.
         /// </summary>
         public void ReplaceDependents(string s, IEnumerable<string> newDependents)
         {
+            if (s == null || newDependents == null)
+            {
+                throw new ArgumentNullException();
+            }
             if (CheckDependencies(s))
             {
                 List<string> oldDependents = new List<string>();
@@ -197,10 +239,14 @@ namespace Dependencies
         /// <summary>
         /// Removes all existing dependencies of the form (r,t).  Then, for each 
         /// s in newDependees, adds the dependency (s,t).
-        /// Requires s != null and t != null.
+        /// Requires s != null and t != null. NewDependees cannot be or contain null.
         /// </summary>
         public void ReplaceDependees(string t, IEnumerable<string> newDependees)
         {
+            if (t == null || newDependees == null)
+            {
+                throw new ArgumentNullException();
+            }
             if (CheckDependencies(t))
             {
                 List<string> oldDependees = new List<string>();
@@ -225,7 +271,7 @@ namespace Dependencies
         /// <summary>
         /// Checks dependency dictionary for specified string.
         /// </summary>
-        public bool CheckDependencies(string s)
+        private bool CheckDependencies(string s)
         {
             return dependencies.ContainsKey(s.GetHashCode());
         }

@@ -398,6 +398,49 @@ namespace Dependencies
             }
             Assert.AreEqual(5, count);
         }
+
+        /// <summary>
+        /// Tests for null throws.
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentNullException))]
+        public void NullThrows()
+        {
+            DependencyGraph dg = new DependencyGraph();
+            dg.AddDependency(null, null);
+            dg.RemoveDependency(null, null);
+            dg.GetDependees(null);
+            dg.GetDependents(null);
+            dg.HasDependees(null);
+            dg.HasDependents(null);
+            dg.ReplaceDependees(null, null);
+            dg.ReplaceDependents(null, null);
+            DependencyGraph dg2 = new DependencyGraph(null);
+        }
+
+        /// <summary>
+        /// Tests new constructor.
+        /// </summary>
+        [TestMethod]
+        public void NewConstructor()
+        {
+            DependencyGraph dg1 = new DependencyGraph();
+            dg1.AddDependency("a", "b");
+            dg1.AddDependency("a", "c");
+            dg1.AddDependency("a", "d");
+            dg1.AddDependency("b", "c");
+            dg1.AddDependency("b", "d");
+            dg1.AddDependency("c", "d");
+            DependencyGraph dg2 = new DependencyGraph(dg1);
+            dg1.RemoveDependency("a", "c");
+            Assert.AreEqual(5, dg1.Size);
+            Assert.AreEqual(6, dg2.Size);
+            dg2.AddDependency("c", "e");
+            dg2.AddDependency("c", "f");
+            Assert.AreEqual(5, dg1.Size);
+            Assert.AreEqual(8, dg2.Size);
+        }
+
         /// <summary>
         /// Tests operation of a large dependency graph.
         /// </summary>
