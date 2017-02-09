@@ -3,6 +3,8 @@
 using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Formulas;
+using System.Text.RegularExpressions;
+using System.Collections.Generic;
 
 namespace FormulaTestCases
 {
@@ -167,6 +169,203 @@ namespace FormulaTestCases
         }
 
         /// <summary>
+        /// This tests that a syntactically incorrect parameter to Formula results
+        /// in a FormulaFormatException.
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void Construct1_2()
+        {
+            Formula f = new Formula("(a+16.5)*_4-12.1*(3+(4/a1))", x => x, _ => true);
+        }
+
+        /// <summary>
+        /// This is another syntax error
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void Construct2_2()
+        {
+            Formula f = new Formula("", x => x, _ => true);
+        }
+
+        /// <summary>
+        /// Another syntax error.
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void Construct3_2()
+        {
+            Formula f = new Formula("(a+16.5))*4-12.1*(3+(4/a1))", x => x, _ => true);
+        }
+
+        /// <summary>
+        /// Another syntax error.
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void Construct4_2()
+        {
+            Formula f = new Formula("(a+16.5)*4-12.1*((3+(4/a1))", x => x, _ => true);
+        }
+
+        /// <summary>
+        /// Another syntax error.
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void Construct5_2()
+        {
+            Formula f = new Formula("/(a+16.5)*4-12.1*(3+(4/a1))", x => x, _ => true);
+        }
+
+        /// <summary>
+        /// Another syntax error.
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void Construct6_2()
+        {
+            Formula f = new Formula("(a+16.5)*4-12.1*(3+(4/a1))+", x => x, _ => true);
+        }
+
+        /// <summary>
+        /// Another syntax error.
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void Construct7_2()
+        {
+            Formula f = new Formula("()a+16.5)*4-12.1*(3+(4/a1))", x => x, _ => true);
+        }
+
+        /// <summary>
+        /// Another syntax error.
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void Construct8_2()
+        {
+            Formula f = new Formula("(a(+16.5)*4-12.1*(3+(4/a1))", x => x, _ => true);
+        }
+
+        /// <summary>
+        /// Another syntax error.
+        /// </summary>
+        [TestMethod]
+        public void Construct9_2()
+        {
+            Formula f = new Formula("(a+16.5)*4-12.1*(3+(4/a1))", x => x, _ => true);
+        }
+
+        /// <summary>
+        /// Makes sure that "2+3" evaluates to 5.  Since the Formula
+        /// contains no variables, the delegate passed in as the
+        /// parameter doesn't matter.  We are passing in one that
+        /// maps all variables to zero.
+        /// </summary>
+        [TestMethod]
+        public void Evaluate1_2()
+        {
+            Formula f = new Formula("2+3", x => x, _ => true);
+            Assert.AreEqual(f.Evaluate(v => 0), 5.0, 1e-6);
+        }
+
+        /// <summary>
+        /// The Formula consists of a single variable (x5).  The value of
+        /// the Formula depends on the value of x5, which is determined by
+        /// the delegate passed to Evaluate.  Since this delegate maps all
+        /// variables to 22.5, the return value should be 22.5.
+        /// </summary>
+        [TestMethod]
+        public void Evaluate2_2()
+        {
+            Formula f = new Formula("x5", x => x, _ => true);
+            Assert.AreEqual(f.Evaluate(v => 22.5), 22.5, 1e-6);
+        }
+
+        /// <summary>
+        /// Here, the delegate passed to Evaluate always throws a
+        /// UndefinedVariableException (meaning that no variables have
+        /// values).  The test case checks that the result of
+        /// evaluating the Formula is a FormulaEvaluationException.
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(FormulaEvaluationException))]
+        public void Evaluate3_2()
+        {
+            Formula f = new Formula("x + y", x => x, _ => true);
+            f.Evaluate(v => { throw new UndefinedVariableException(v); });
+        }
+
+        /// <summary>
+        /// The delegate passed to Evaluate is defined below.  We check
+        /// that evaluating the formula returns in 10.
+        /// </summary>
+        [TestMethod]
+        public void Evaluate4_2()
+        {
+            Formula f = new Formula("x + y", x => x, _ => true);
+            Assert.AreEqual(f.Evaluate(Lookup4), 10.0, 1e-6);
+        }
+
+        /// <summary>
+        /// This uses one of each kind of token.
+        /// </summary>
+        [TestMethod]
+        public void Evaluate5_2()
+        {
+            Formula f = new Formula("(x + y) * (z / x) * 1.0", x => x, _ => true);
+            Assert.AreEqual(f.Evaluate(Lookup4), 20.0, 1e-6);
+        }
+
+        [TestMethod]
+        public void ZeroConstructor()
+        {
+            Formula f = new Formula("0");
+            string test = f.ToString();
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void NormalizerError()
+        {
+            Formula f = new Formula("(a6+16.5)*4-12.1*(3+(4/a1))", Normalizer2, Validator1);
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void ValidatorError()
+        {
+            Formula f = new Formula("(a+16.5)*4-12.1*(3+(4/a1))", Normalizer1, Validator1);
+        }
+
+        [TestMethod]
+        public void GetVariableSet()
+        {
+            Formula f = new Formula("(a6+16.5)*4-12.1*(3+(4/a1))", Normalizer1, Validator1);
+            if (f.GetVariables().Count == 2)
+            {
+                IEnumerator<string> iterator= f.GetVariables().GetEnumerator();
+                iterator.MoveNext();
+                Assert.AreEqual("A6", iterator.Current);
+                iterator.MoveNext();
+                Assert.AreEqual("A1", iterator.Current);
+            }
+            else
+            {
+                Assert.Fail();
+            }
+        }
+
+        [TestMethod]
+        public void ToStringCheck()
+        {
+            Formula f = new Formula("(a6+16.5)*4-12.1*(3+(4/a1))", Normalizer1, Validator1);
+            Assert.AreEqual("(A6+16.5)*4-12.1*(3+(4/A1))", f.ToString());
+        }
+
+        /// <summary>
         /// A Lookup method that maps x to 4.0, y to 6.0, and z to 8.0.
         /// All other variables result in an UndefinedVariableException.
         /// </summary>
@@ -182,5 +381,21 @@ namespace FormulaTestCases
                 default: throw new UndefinedVariableException(v);
             }
         }
+
+        public string Normalizer1(string s)
+        {
+            return s.ToUpper();
+        }
+
+        public string Normalizer2(string s)
+        {
+            return s.GetHashCode() + "";
+        }
+
+        public bool Validator1(string s)
+        {
+            return Regex.IsMatch(s, @"[a-zA-Z][0-9a-zA-Z]");
+        }
+
     }
 }

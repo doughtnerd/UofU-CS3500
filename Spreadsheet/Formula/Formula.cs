@@ -13,9 +13,18 @@ namespace Formulas
     /// the four binary operator symbols +, -, *, and /.  (The unary operators + and -
     /// are not allowed.)
     /// </summary>
-    public class Formula
+    public struct Formula
     {
+        /// <summary>
+        /// Holds the formula of the Formula as a string.
+        /// </summary>
         private string formula;
+
+        /// <summary>
+        /// Holds the variables of the formula in an ISet.
+        /// </summary>
+        private ISet<string> variables;
+
         /// <summary>
         /// Creates a Formula from a string that consists of a standard infix expression composed
         /// from non-negative floating-point numbers (using C#-like syntax for double/int literals), 
@@ -36,8 +45,37 @@ namespace Formulas
         /// If the formula is syntacticaly invalid, throws a FormulaFormatException with an 
         /// explanatory Message.
         /// </summary>
-        public Formula(String formula)
+        public Formula(string formula)
         {
+            if (formula.Equals(null))
+            {
+                throw new ArgumentNullException();
+            }
+            this.formula = null;
+            variables = new HashSet<string>();
+            CreateFormula(formula, x => x, _ => true);
+        }
+
+        /// <summary>
+        /// Multi parameter constuctor.
+        /// </summary>
+        public Formula(string formula, Normalizer normalizer, Validator validator)
+        {
+            if (formula.Equals(null) || normalizer.Equals(null) || validator.Equals(null))
+            {
+                throw new ArgumentNullException();
+            }
+            this.formula = null;
+            variables = new HashSet<string>();
+            CreateFormula(formula, normalizer, validator);
+        }
+
+        /// <summary>
+        /// Creates and validates the formula.
+        /// </summary>
+        private void CreateFormula(string formula, Normalizer normalizer, Validator validator)
+        {
+            string newFormula = "";
             IEnumerator<string> iterator = GetTokens(formula).GetEnumerator();
             int numberOfOpeningParentheses = 0, numberOfClosingParentheses = 0;
             bool checkNextType1 = false, checkNextType2 = false;
@@ -52,17 +90,29 @@ namespace Formulas
             if (IsDouble(iterator.Current))
             {
                 //double
+                newFormula += iterator.Current;
                 checkNextType2 = true;
             }
             else if (IsVariable(iterator.Current))
             {
                 //variable
+                if (!IsVariable(normalizer(iterator.Current)))
+                {
+                    throw new FormulaFormatException("Normalizer not a valid variable.");
+                }
+                if (!validator(normalizer(iterator.Current)))
+                {
+                    throw new FormulaFormatException("Variable does not match validator.");
+                }
+                newFormula += normalizer(iterator.Current);
+                variables.Add(normalizer(iterator.Current));
                 checkNextType2 = true;
             }
             else if (iterator.Current.Equals("("))
             {
                 //opening parenthesis
                 numberOfOpeningParentheses++;
+                newFormula += iterator.Current;
                 checkNextType1 = true;
             }
             while (iterator.MoveNext())
@@ -78,6 +128,7 @@ namespace Formulas
                     {
                         throw new FormulaFormatException("Invalid token combination.");
                     }
+                    newFormula += iterator.Current;
                     checkNextType2 = true;
                 }
                 else if (IsVariable(iterator.Current))
@@ -91,6 +142,16 @@ namespace Formulas
                     {
                         throw new FormulaFormatException("Invalid token combination.");
                     }
+                    if (!IsVariable(normalizer(iterator.Current)))
+                    {
+                        throw new FormulaFormatException("Normalizer not a valid variable.");
+                    }
+                    if (!validator(normalizer(iterator.Current)))
+                    {
+                        throw new FormulaFormatException("Variable does not match validator.");
+                    }
+                    newFormula += normalizer(iterator.Current);
+                    variables.Add(normalizer(iterator.Current));
                     checkNextType2 = true;
                 }
                 else if (iterator.Current.Equals("("))
@@ -105,6 +166,7 @@ namespace Formulas
                     {
                         throw new FormulaFormatException("Invalid token combination.");
                     }
+                    newFormula += iterator.Current;
                     checkNextType1 = true;
                 }
                 else if (iterator.Current.Equals(")"))
@@ -123,6 +185,7 @@ namespace Formulas
                     {
                         checkNextType2 = false;
                     }
+                    newFormula += iterator.Current;
                     checkNextType2 = true;
                 }
                 else if (iterator.Current.Equals("+") || iterator.Current.Equals("-") || iterator.Current.Equals("*") || iterator.Current.Equals("/"))
@@ -136,6 +199,7 @@ namespace Formulas
                     {
                         checkNextType2 = false;
                     }
+                    newFormula += iterator.Current;
                     checkNextType1 = true;
                 }
                 else
@@ -152,12 +216,21 @@ namespace Formulas
             {
                 throw new FormulaFormatException("Number of opening parentheses does not match number of closing parentheses.");
             }
-            this.formula = formula;
+            this.formula = newFormula;
         }
+
+        /// <summary>
+        /// Returns each distinct variable (in normalized form) that appears in the Formula.
+        /// </summary>
+        public ISet<string> GetVariables()
+        {
+            return variables;
+        }
+
         /// <summary>
         /// Tests if a string is a double.
         /// </summary>
-        public bool IsDouble(string formulaPart)
+        private bool IsDouble(string formulaPart)
         {
             double result;
             return double.TryParse(formulaPart, out result);
@@ -165,7 +238,7 @@ namespace Formulas
         /// <summary>
         /// Tests if a string is a variable.
         /// </summary>
-        public bool IsVariable(string formulaPart)
+        private bool IsVariable(string formulaPart)
         {
             if (char.IsLetter(formulaPart.ToCharArray()[0]))
             {
@@ -180,6 +253,15 @@ namespace Formulas
             }
             return false;
         }
+
+        /// <summary>
+        /// Returns a string version of the Formula (in normalized form).
+        /// </summary>
+        public override string ToString()
+        {
+            return formula;
+        }
+
         /// <summary>
         /// Evaluates this Formula, using the Lookup delegate to determine the values of variables.  (The
         /// delegate takes a variable name as a parameter and returns its value (if it has one) or throws
@@ -191,6 +273,10 @@ namespace Formulas
         /// </summary>
         public double Evaluate(Lookup lookup)
         {
+            if (lookup.Equals(null))
+            {
+                throw new ArgumentNullException();
+            }
             if (formula.Equals(null))
             {
                 throw new FormulaEvaluationException("Invalid formula.");
@@ -378,6 +464,17 @@ namespace Formulas
     /// don't is up to the implementation of the method.
     /// </summary>
     public delegate double Lookup(string var);
+
+    /// <summary>
+    /// Converts variables into a canonical form.
+    /// </summary>
+    public delegate string Normalizer(string s);
+
+    /// <summary>
+    /// Imposes extra restrictions on the validity of a variable, beyond the ones already built
+    /// into the Formula definition.
+    /// </summary>
+    public delegate bool Validator(string s);
 
     /// <summary>
     /// Used to report that a Lookup delegate is unable to determine the value
