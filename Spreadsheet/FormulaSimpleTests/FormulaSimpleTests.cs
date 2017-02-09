@@ -319,13 +319,20 @@ namespace FormulaTestCases
             Assert.AreEqual(f.Evaluate(Lookup4), 20.0, 1e-6);
         }
 
+        /// <summary>
+        /// Tests the zero parameter constructor.
+        /// </summary>
         [TestMethod]
         public void ZeroConstructor()
         {
-            Formula f = new Formula("0");
+            Formula f = new Formula();
             string test = f.ToString();
+            double test2 = f.Evaluate(x => 2);
         }
 
+        /// <summary>
+        /// Tests bad normalizer.
+        /// </summary>
         [TestMethod]
         [ExpectedException(typeof(FormulaFormatException))]
         public void NormalizerError()
@@ -333,6 +340,9 @@ namespace FormulaTestCases
             Formula f = new Formula("(a6+16.5)*4-12.1*(3+(4/a1))", Normalizer2, Validator1);
         }
 
+        /// <summary>
+        /// Tests bad validator.
+        /// </summary>
         [TestMethod]
         [ExpectedException(typeof(FormulaFormatException))]
         public void ValidatorError()
@@ -340,6 +350,9 @@ namespace FormulaTestCases
             Formula f = new Formula("(a+16.5)*4-12.1*(3+(4/a1))", Normalizer1, Validator1);
         }
 
+        /// <summary>
+        /// Tests variable set for correctness.
+        /// </summary>
         [TestMethod]
         public void GetVariableSet()
         {
@@ -358,6 +371,9 @@ namespace FormulaTestCases
             }
         }
 
+        /// <summary>
+        /// Tests the Formula ToString method.
+        /// </summary>
         [TestMethod]
         public void ToStringCheck()
         {
@@ -382,16 +398,25 @@ namespace FormulaTestCases
             }
         }
 
+        /// <summary>
+        /// Test normalizer.
+        /// </summary>
         public string Normalizer1(string s)
         {
             return s.ToUpper();
         }
 
+        /// <summary>
+        /// Bad test normalizer.
+        /// </summary>
         public string Normalizer2(string s)
         {
             return s.GetHashCode() + "";
         }
 
+        /// <summary>
+        /// Test validator.
+        /// </summary>
         public bool Validator1(string s)
         {
             return Regex.IsMatch(s, @"[a-zA-Z][0-9a-zA-Z]");

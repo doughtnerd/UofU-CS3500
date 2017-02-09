@@ -47,7 +47,7 @@ namespace Formulas
         /// </summary>
         public Formula(string formula)
         {
-            if (formula.Equals(null))
+            if (formula == null)
             {
                 throw new ArgumentNullException();
             }
@@ -61,7 +61,7 @@ namespace Formulas
         /// </summary>
         public Formula(string formula, Normalizer normalizer, Validator validator)
         {
-            if (formula.Equals(null) || normalizer.Equals(null) || validator.Equals(null))
+            if (formula == null || normalizer == null || validator == null)
             {
                 throw new ArgumentNullException();
             }
@@ -259,6 +259,10 @@ namespace Formulas
         /// </summary>
         public override string ToString()
         {
+            if (formula == null)
+            {
+                return "0";
+            }
             return formula;
         }
 
@@ -273,13 +277,13 @@ namespace Formulas
         /// </summary>
         public double Evaluate(Lookup lookup)
         {
-            if (lookup.Equals(null))
+            if (lookup == null)
             {
                 throw new ArgumentNullException();
             }
-            if (formula.Equals(null))
+            if (formula == null)
             {
-                throw new FormulaEvaluationException("Invalid formula.");
+                formula = "0";
             }
             IEnumerator<string> iterator = GetTokens(formula).GetEnumerator();
             Stack<double> values = new Stack<double>();
