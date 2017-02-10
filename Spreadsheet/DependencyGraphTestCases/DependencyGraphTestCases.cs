@@ -138,7 +138,7 @@ namespace Dependencies
             IEnumerator<string> iterator1 = expected.GetEnumerator();
             IEnumerator<string> iterator2 = dg.GetDependents("d").GetEnumerator();
             while (iterator2.MoveNext()) {
-                if(!iterator1.MoveNext())
+                if (!iterator1.MoveNext())
                 {
                     Assert.Fail();
                 }
@@ -404,17 +404,97 @@ namespace Dependencies
         /// </summary>
         [TestMethod]
         [ExpectedException(typeof(ArgumentNullException))]
-        public void NullThrows()
+        public void NullThrow1()
         {
             DependencyGraph dg = new DependencyGraph();
             dg.AddDependency(null, null);
+        }
+
+        /// <summary>
+        /// Tests for null throws.
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentNullException))]
+        public void NullThrow2()
+        {
+            DependencyGraph dg = new DependencyGraph();
             dg.RemoveDependency(null, null);
+        }
+
+        /// <summary>
+        /// Tests for null throws.
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentNullException))]
+        public void NullThrow3()
+        {
+            DependencyGraph dg = new DependencyGraph();
             dg.GetDependees(null);
+        }
+
+        /// <summary>
+        /// Tests for null throws.
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentNullException))]
+        public void NullThrow4()
+        {
+            DependencyGraph dg = new DependencyGraph();
             dg.GetDependents(null);
+        }
+
+        /// <summary>
+        /// Tests for null throws.
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentNullException))]
+        public void NullThrow5()
+        {
+            DependencyGraph dg = new DependencyGraph();
             dg.HasDependees(null);
+        }
+
+        /// <summary>
+        /// Tests for null throws.
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentNullException))]
+        public void NullThrow6()
+        {
+            DependencyGraph dg = new DependencyGraph();
             dg.HasDependents(null);
+        }
+
+        /// <summary>
+        /// Tests for null throws.
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentNullException))]
+        public void NullThrow7()
+        {
+            DependencyGraph dg = new DependencyGraph();
             dg.ReplaceDependees(null, null);
+        }
+
+        /// <summary>
+        /// Tests for null throws.
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentNullException))]
+        public void NullThrow8()
+        {
+            DependencyGraph dg = new DependencyGraph();
             dg.ReplaceDependents(null, null);
+        }
+
+        /// <summary>
+        /// Tests for null throws.
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentNullException))]
+        public void NullThrow9()
+        {
+            DependencyGraph dg = new DependencyGraph();
             DependencyGraph dg2 = new DependencyGraph(null);
         }
 

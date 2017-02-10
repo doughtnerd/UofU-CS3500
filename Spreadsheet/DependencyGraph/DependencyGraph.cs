@@ -76,8 +76,19 @@ namespace Dependencies
             {
                 throw new ArgumentNullException();
             }
-            dependencies = dg.dependencies;
-            count = dg.count;
+            dependencies = new Dictionary<int, Dependency>();
+            count = 0;
+            foreach (Dependency d in dg.dependencies.Values)
+            {
+                Dictionary<int, string> dependents = new Dictionary<int, string>(d.GetDependents());
+                Dictionary<int, string> dependees = new Dictionary<int, string>(d.GetDependees());
+                if (!dependencies.ContainsKey(d.GetDependency().GetHashCode()))
+                {
+                    dependencies.Add(d.GetDependency().GetHashCode(), new Dependency(d.GetDependency()));
+                }
+                ReplaceDependents(d.GetDependency(), dependents.Values);
+                ReplaceDependees(d.GetDependency(), dependees.Values);
+            }
         }
 
         /// <summary>
@@ -289,7 +300,7 @@ namespace Dependencies
             private Dictionary<int, string> dependees;
 
             /// <summary>
-            /// 
+            /// Creates a new dependency.
             /// </summary>
             public Dependency(string s)
             {
@@ -328,6 +339,14 @@ namespace Dependencies
             public void RemoveDependee(string s)
             {
                 dependees.Remove(s.GetHashCode());
+            }
+
+            /// <summary>
+            /// Returns dependency as a string.
+            /// </summary>
+            public string GetDependency()
+            {
+                return dependency;
             }
 
             /// <summary>
