@@ -224,6 +224,10 @@ namespace Formulas
         /// </summary>
         public ISet<string> GetVariables()
         {
+            if (variables == null)
+            {
+                return new HashSet<string>();
+            }
             return variables;
         }
 
