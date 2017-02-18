@@ -137,7 +137,13 @@ namespace SS
             }
             // update dependency graph as needed
             // clear relationship between cell (name) and its dependents
+            HashSet<string> set2 = new HashSet<string>();
             iterator = dg.GetDependents(name).GetEnumerator();
+            while (iterator.MoveNext())
+            {
+                set2.Add(iterator.Current);
+            }
+            iterator = set2.GetEnumerator();
             while (iterator.MoveNext())
             {
                 dg.RemoveDependency(name, iterator.Current);
@@ -157,6 +163,10 @@ namespace SS
             {
                 if (validCellName.IsMatch(iterator.Current))
                 {
+                    if (set.Contains(iterator.Current))
+                    {
+                        throw new CircularException();
+                    }
                     dg.AddDependency(name, iterator.Current);
                 }
             }
@@ -193,7 +203,13 @@ namespace SS
             }
             // update dependency graph as needed
             // clear relationship between cell (name) and its dependents
+            HashSet<string> set2 = new HashSet<string>();
             iterator = dg.GetDependents(name).GetEnumerator();
+            while (iterator.MoveNext())
+            {
+                set2.Add(iterator.Current);
+            }
+            iterator = set2.GetEnumerator();
             while (iterator.MoveNext())
             {
                 dg.RemoveDependency(name, iterator.Current);
@@ -234,7 +250,13 @@ namespace SS
             }
             // update dependency graph as needed
             // clear relationship between cell (name) and its dependents
+            HashSet<string> set2 = new HashSet<string>();
             iterator = dg.GetDependents(name).GetEnumerator();
+            while (iterator.MoveNext())
+            {
+                set2.Add(iterator.Current);
+            }
+            iterator = set2.GetEnumerator();
             while (iterator.MoveNext())
             {
                 dg.RemoveDependency(name, iterator.Current);
