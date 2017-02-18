@@ -53,9 +53,19 @@ namespace SS
     /// </summary>
     public class Spreadsheet : AbstractSpreadsheet
     {
+        /// <summary>
+        /// Holds the created cells of the spreadsheet.
+        /// </summary>
         private Dictionary<int, Cell> cells;
+        /// <summary>
+        /// Tracks the dependencies between cells of the spreadsheet.
+        /// </summary>
         private DependencyGraph dg;
-        private Regex reg = new Regex(@"[a-zA-Z]+[1-9][0-9]*");
+        /// <summary>
+        /// Represents a valid cell name.
+        /// </summary>
+        private Regex validCellName = new Regex(@"[a-zA-Z]+[1-9][0-9]*");
+
         /// <summary>
         /// Creates an empty spreadsheet.
         /// </summary>
@@ -73,11 +83,15 @@ namespace SS
         /// </summary>
         public override object GetCellContents(string name)
         {
-            if (name == null || !reg.IsMatch(name))
+            if (name == null || !validCellName.IsMatch(name))
             {
                 throw new InvalidNameException();
             }
-            throw new NotImplementedException();
+            if (cells.ContainsKey(name.GetHashCode()))
+            {
+                return cells[name.GetHashCode()].content;
+            }
+            return "";
         }
 
         /// <summary>
@@ -85,7 +99,15 @@ namespace SS
         /// </summary>
         public override IEnumerable<string> GetNamesOfAllNonemptyCells()
         {
-            throw new NotImplementedException();
+            List<string> list = new List<string>();
+            foreach (Cell c in cells.Values)
+            {
+                if (!c.content.Equals(""))
+                {
+                    list.Add(c.name);
+                }
+            }
+            return list;
         }
 
         /// <summary>
@@ -103,11 +125,42 @@ namespace SS
         /// </summary>
         public override ISet<string> SetCellContents(string name, Formula formula)
         {
-            if (name == null || !reg.IsMatch(name))
+            if (name == null || !validCellName.IsMatch(name))
             {
                 throw new InvalidNameException();
             }
-            throw new NotImplementedException();
+            HashSet<string> set = new HashSet<string>();
+            IEnumerator<string> iterator = GetCellsToRecalculate(name).GetEnumerator();
+            while (iterator.MoveNext())
+            {
+                set.Add(iterator.Current);
+            }
+            // update dependency graph as needed
+            // clear relationship between cell (name) and its dependents
+            iterator = dg.GetDependents(name).GetEnumerator();
+            while (iterator.MoveNext())
+            {
+                dg.RemoveDependency(name, iterator.Current);
+            }
+            // update cell contents
+            if (!cells.ContainsKey(name.GetHashCode()))
+            {
+                cells.Add(name.GetHashCode(), new Cell(name, formula));
+            }
+            else
+            {
+                cells[name.GetHashCode()].content = formula;
+            }
+            // add relationships between cell (name) and its dependents
+            iterator = formula.GetVariables().GetEnumerator();
+            while (iterator.MoveNext())
+            {
+                if (validCellName.IsMatch(iterator.Current))
+                {
+                    dg.AddDependency(name, iterator.Current);
+                }
+            }
+            return set;
         }
 
         /// <summary>
@@ -128,11 +181,33 @@ namespace SS
             {
                 throw new ArgumentNullException();
             }
-            if (name == null || !reg.IsMatch(name))
+            if (name == null || !validCellName.IsMatch(name))
             {
                 throw new InvalidNameException();
             }
-            throw new NotImplementedException();
+            HashSet<string> set = new HashSet<string>();
+            IEnumerator<string> iterator = GetCellsToRecalculate(name).GetEnumerator();
+            while (iterator.MoveNext())
+            {
+                set.Add(iterator.Current);
+            }
+            // update dependency graph as needed
+            // clear relationship between cell (name) and its dependents
+            iterator = dg.GetDependents(name).GetEnumerator();
+            while (iterator.MoveNext())
+            {
+                dg.RemoveDependency(name, iterator.Current);
+            }
+            // update cell contents
+            if (!cells.ContainsKey(name.GetHashCode()))
+            {
+                cells.Add(name.GetHashCode(), new Cell(name, text));
+            }
+            else
+            {
+                cells[name.GetHashCode()].content = text;
+            }
+            return set;
         }
 
         /// <summary>
@@ -147,16 +222,31 @@ namespace SS
         /// </summary>
         public override ISet<string> SetCellContents(string name, double number)
         {
-            if (name == null || !reg.IsMatch(name))
+            if (name == null || !validCellName.IsMatch(name))
             {
                 throw new InvalidNameException();
             }
             HashSet<string> set = new HashSet<string>();
-            set.Add(name);
-            IEnumerator<string> iterator = GetDirectDependents(name).GetEnumerator();
+            IEnumerator<string> iterator = GetCellsToRecalculate(name).GetEnumerator();
             while (iterator.MoveNext())
             {
                 set.Add(iterator.Current);
+            }
+            // update dependency graph as needed
+            // clear relationship between cell (name) and its dependents
+            iterator = dg.GetDependents(name).GetEnumerator();
+            while (iterator.MoveNext())
+            {
+                dg.RemoveDependency(name, iterator.Current);
+            }
+            // update cell contents
+            if (!cells.ContainsKey(name.GetHashCode()))
+            {
+                cells.Add(name.GetHashCode(), new Cell(name, number));
+            }
+            else
+            {
+                cells[name.GetHashCode()].content = number;
             }
             return set;
         }
@@ -184,18 +274,30 @@ namespace SS
             {
                 throw new ArgumentNullException();
             }
-            if (!reg.IsMatch(name))
+            if (!validCellName.IsMatch(name))
             {
                 throw new InvalidNameException();
             }
             return dg.GetDependees(name);
         }
 
+        /// <summary>
+        /// Represents a cell of a spreadsheet.
+        /// </summary>
         private class Cell
         {
+            /// <summary>
+            /// Holds the content of the cell.
+            /// </summary>
             public object content { get; set; }
-            private string name { get; }
+            /// <summary>
+            /// Holds the valid name of the cell.
+            /// </summary>
+            public string name { get; }
 
+            /// <summary>
+            /// Creates a cell with the provided name and content.
+            /// </summary>
             public Cell(string cellName, object cellContent)
             {
                 name = cellName;
