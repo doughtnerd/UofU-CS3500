@@ -64,7 +64,7 @@ namespace SS
         /// <summary>
         /// Represents a valid cell name.
         /// </summary>
-        private Regex validCellName = new Regex(@"[a-zA-Z]+[1-9][0-9]*");
+        private Regex validCellName = new Regex("[a-zA-Z]+[1-9][0-9]*");
 
         /// <summary>
         /// Creates an empty spreadsheet.
@@ -135,6 +135,18 @@ namespace SS
             {
                 set.Add(iterator.Current);
             }
+            // check for circular dependency
+            iterator = formula.GetVariables().GetEnumerator();
+            while (iterator.MoveNext())
+            {
+                if (validCellName.IsMatch(iterator.Current))
+                {
+                    if (set.Contains(iterator.Current))
+                    {
+                        throw new CircularException();
+                    }
+                }
+            }
             // update dependency graph as needed
             // clear relationship between cell (name) and its dependents
             HashSet<string> set2 = new HashSet<string>();
@@ -163,10 +175,6 @@ namespace SS
             {
                 if (validCellName.IsMatch(iterator.Current))
                 {
-                    if (set.Contains(iterator.Current))
-                    {
-                        throw new CircularException();
-                    }
                     dg.AddDependency(name, iterator.Current);
                 }
             }
