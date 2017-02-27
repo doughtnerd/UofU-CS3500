@@ -7,18 +7,29 @@ using System.Text.RegularExpressions;
 using Formulas;
 using Dependencies;
 using System.IO;
+using System.Xml;
+using System.Xml.Schema;
 
 namespace SS
 {
     /// <summary>
     /// A Spreadsheet object represents the state of a simple spreadsheet.  A 
-    /// spreadsheet consists of an infinite number of named cells.
+    /// spreadsheet consists of a regular expression (called IsValid below) and an infinite 
+    /// number of named cells.
     /// 
-    /// A string s is a valid cell name if and only if it consists of one or more letters, 
-    /// followed by a non-zero digit, followed by zero or more digits.
+    /// A string is a valid cell name if and only if (1) s consists of one or more letters, 
+    /// followed by a non-zero digit, followed by zero or more digits AND (2) the C#
+    /// expression IsValid.IsMatch(s.ToUpper()) is true.
     /// 
-    /// For example, "A15", "a15", "XY32", and "BC7" are valid cell names.  On the other hand, 
-    /// "Z", "X07", and "hello" are not valid cell names.
+    /// For example, "A15", "a15", "XY32", and "BC7" are valid cell names, so long as they also
+    /// are accepted by IsValid.  On the other hand, "Z", "X07", and "hello" are not valid cell 
+    /// names, regardless of IsValid.
+    /// 
+    /// Any valid incoming cell name, whether passed as a parameter or embedded in a formula,
+    /// must be normalized by converting all letters to upper case before it is used by this 
+    /// this spreadsheet.  For example, the Formula "x3+a5" should be normalize to "X3+A5" before 
+    /// use.  Similarly, all cell names and Formulas that are returned or written to a file must also
+    /// be normalized.
     /// 
     /// A spreadsheet contains a cell corresponding to every possible cell name.  
     /// In addition to a name, each cell has a contents and a value.  The distinction is
@@ -58,18 +69,26 @@ namespace SS
         /// Holds the created cells of the spreadsheet.
         /// </summary>
         private Dictionary<int, Cell> cells;
+
         /// <summary>
         /// Tracks the dependencies between cells of the spreadsheet.
         /// </summary>
         private DependencyGraph dg;
+
         /// <summary>
         /// Represents a valid cell name.
         /// </summary>
-        private Regex validCellName;
+        private Regex validCellName = new Regex(@"^[a-zA-Z]+[1-9][0-9]*$");
+
         /// <summary>
-        /// Tracks if the spreadsheet has been modified.
+        /// Tracks if the spreadsheet was modified.
         /// </summary>
-        private bool modified;
+        private bool _Changed;
+
+        /// <summary>
+        /// The spreadsheet's validator for cell names.
+        /// </summary>
+        private Regex _IsValid;
 
         /// <summary>
         /// Creates an empty Spreadsheet whose IsValid regular expression accepts every string.
@@ -78,7 +97,7 @@ namespace SS
         {
             cells = new Dictionary<int, Cell>();
             dg = new DependencyGraph();
-            validCellName = null//;
+            IsValid = new Regex(@"^.*$");
             Changed = false;
         }
 
@@ -89,7 +108,7 @@ namespace SS
         {
             cells = new Dictionary<int, Cell>();
             dg = new DependencyGraph();
-            validCellName = isValid;
+            IsValid = isValid;
             Changed = false;
         }
 
@@ -127,8 +146,78 @@ namespace SS
         {
             cells = new Dictionary<int, Cell>();
             dg = new DependencyGraph();
-            validCellName = isValid;
+            Regex oldIsValid = null;
+            // Create the XmlSchemaSet class.  Anything with the namespace "urn:spreadsheet-schema" will
+            // be validated against Spreadsheet.xsd.
+            XmlSchemaSet sc = new XmlSchemaSet();
+
+            // NOTE: To read Spreadsheet.xsd this way, it must be stored in the same folder with the
+            // executable.  To arrange this, I set the "Copy to Output Directory" propery of Spreadsheet.xsd to
+            // "Copy If Newer", which will copy Spreadsheet.xsd as part of each build (if it has changed
+            // since the last build).
+            sc.Add(null, "Spreadsheet.xsd");
+
+            // Configure validation.
+            XmlReaderSettings settings = new XmlReaderSettings();
+            settings.ValidationType = ValidationType.Schema;
+            settings.Schemas = sc;
+            settings.ValidationEventHandler += ValidationCallback;
+
+            using (XmlReader reader = XmlReader.Create(source, settings))
+            {
+                try
+                {
+                    while (reader.Read())
+                    {
+                        if (reader.IsStartElement())
+                        {
+                            switch (reader.Name)
+                            {
+                                case "spreadsheet":
+                                    try
+                                    {
+                                        oldIsValid = new Regex(reader["IsValid"]);
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        throw new SpreadsheetReadException(e.Message);
+                                    }
+                                    break;
+
+                                case "cell":
+                                    if (cells.ContainsKey(reader["name"].ToUpper().GetHashCode()))
+                                    {
+                                        throw new SpreadsheetReadException("Duplicate cell names in file.");
+                                    }
+                                    try
+                                    {
+                                        IsValid = oldIsValid;
+                                        SetContentsOfCell(reader["name"], reader["contents"]);
+                                        IsValid = newIsValid;
+                                        SetContentsOfCell(reader["name"], reader["contents"]);
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        throw new SpreadsheetReadException(e.Message);
+                                    }
+                                    break;
+                            }
+
+                        }
+                    }
+                }
+                catch (Exception)
+                {
+                    throw new IOException();
+                }
+            }
             Changed = false;
+        }
+
+        // Throw any validation errors.
+        private static void ValidationCallback(object sender, ValidationEventArgs e)
+        {
+            throw new SpreadsheetReadException(e.Message);
         }
 
         /// <summary>
@@ -139,12 +228,26 @@ namespace SS
         {
             get
             {
-                return modified;
+                return _Changed;
             }
-
             protected set
             {
-                modified = value;
+                _Changed = value;
+            }
+        }
+
+        /// <summary>
+        /// Represents a validator for cell names.
+        /// </summary>
+        public Regex IsValid
+        {
+            get
+            {
+                return _IsValid;
+            }
+            set
+            {
+                _IsValid = value;
             }
         }
 
@@ -156,13 +259,13 @@ namespace SS
         /// </summary>
         public override object GetCellContents(string name)
         {
-            if (name == null || !validCellName.IsMatch(name))
+            if (name == null || !validCellName.IsMatch(name) || !IsValid.IsMatch(name.ToUpper()))
             {
                 throw new InvalidNameException();
             }
-            if (cells.ContainsKey(name.GetHashCode()))
+            if (cells.ContainsKey(name.ToUpper().GetHashCode()))
             {
-                return cells[name.GetHashCode()].content;
+                return cells[name.ToUpper().GetHashCode()].Content;
             }
             return "";
         }
@@ -175,11 +278,15 @@ namespace SS
         /// </summary>
         public override object GetCellValue(string name)
         {
-            if (name == null || !validCellName.IsMatch(name))
+            if (name == null || !validCellName.IsMatch(name) || !IsValid.IsMatch(name.ToUpper()))
             {
                 throw new InvalidNameException();
             }
-            throw new NotImplementedException();
+            if (cells.ContainsKey(name.ToUpper().GetHashCode()))
+            {
+                return cells[name.ToUpper().GetHashCode()].Value;
+            }
+            return "";
         }
 
         /// <summary>
@@ -190,9 +297,9 @@ namespace SS
             List<string> list = new List<string>();
             foreach (Cell c in cells.Values)
             {
-                if (!c.content.Equals(""))
+                if (!c.Content.Equals(""))
                 {
-                    list.Add(c.name);
+                    list.Add(c.Name);
                 }
             }
             return list;
@@ -219,8 +326,43 @@ namespace SS
         /// </summary>
         public override void Save(TextWriter dest)
         {
-            
-            modified = false;
+            XmlWriterSettings settings = new XmlWriterSettings();
+            settings.Indent = true;
+            settings.IndentChars = "\t";
+            using (XmlWriter writer = XmlWriter.Create(dest, settings))
+            {
+                try
+                {
+                    writer.WriteStartDocument();
+                    writer.WriteStartElement("", "spreadsheet", "urn:spreadsheet-schema");
+                    writer.WriteAttributeString("IsValid", IsValid.ToString());
+                    foreach (Cell c in cells.Values)
+                    {
+                        writer.WriteStartElement("cell");
+                        writer.WriteAttributeString("name", c.Name);
+                        if (c.Content.GetType() == typeof(string))
+                        {
+                            writer.WriteAttributeString("contents", ((string)c.Content));
+                        }
+                        else if (c.Content.GetType() == typeof(double))
+                        {
+                            writer.WriteAttributeString("contents", ((double)c.Content).ToString());
+                        }
+                        else if (c.Content.GetType() == typeof(Formula))
+                        {
+                            writer.WriteAttributeString("contents", "=" + ((Formula)c.Content).ToString());
+                        }
+                        writer.WriteEndElement();
+                    }
+                    writer.WriteEndElement();
+                    writer.WriteEndDocument();
+                }
+                catch (Exception)
+                {
+                    throw new IOException();
+                }
+            }
+            Changed = false;
         }
 
         /// <summary>
@@ -240,7 +382,7 @@ namespace SS
         /// </summary>
         protected override ISet<string> SetCellContents(string name, Formula formula)
         {
-            if (name == null || !validCellName.IsMatch(name))
+            if (name == null || !validCellName.IsMatch(name) || !IsValid.IsMatch(name))
             {
                 throw new InvalidNameException();
             }
@@ -254,16 +396,20 @@ namespace SS
             iterator = formula.GetVariables().GetEnumerator();
             while (iterator.MoveNext())
             {
-                if (validCellName.IsMatch(iterator.Current))
+                if (validCellName.IsMatch(iterator.Current) && IsValid.IsMatch(iterator.Current))
                 {
                     if (set.Contains(iterator.Current))
                     {
                         throw new CircularException();
                     }
                 }
+                else
+                {
+                    throw new InvalidNameException();
+                }
             }
             // update dependency graph as needed
-            // clear relationship between cell (name) and its dependents
+            // clear relationship between cell (name) and its old dependents
             HashSet<string> set2 = new HashSet<string>();
             iterator = dg.GetDependents(name).GetEnumerator();
             while (iterator.MoveNext())
@@ -275,24 +421,51 @@ namespace SS
             {
                 dg.RemoveDependency(name, iterator.Current);
             }
-            // update cell contents
-            if (!cells.ContainsKey(name.GetHashCode()))
-            {
-                cells.Add(name.GetHashCode(), new Cell(name, formula));
-            }
-            else
-            {
-                cells[name.GetHashCode()].content = formula;
-            }
-            // add relationships between cell (name) and its dependents
+            // add relationships between cell (name) and its new dependents
             iterator = formula.GetVariables().GetEnumerator();
             while (iterator.MoveNext())
             {
-                if (validCellName.IsMatch(iterator.Current))
+                dg.AddDependency(name, iterator.Current);
+            }
+            // update cell contents and value
+            if (!cells.ContainsKey(name.GetHashCode()))
+            {
+                try
                 {
-                    dg.AddDependency(name, iterator.Current);
+                    cells.Add(name.GetHashCode(), new Cell(name, formula, formula.Evaluate(s => ((double)cells[s.ToUpper().GetHashCode()].Value))));
+                }
+                catch (Exception e)
+                {
+                    cells.Add(name.GetHashCode(), new Cell(name, formula, new FormulaError(e.Message)));
                 }
             }
+            else
+            {
+                cells[name.GetHashCode()].Content = formula;
+                try
+                {
+                    cells[name.GetHashCode()].Value = formula.Evaluate(s => ((double)cells[s.ToUpper().GetHashCode()].Value));
+                }
+                catch (Exception e)
+                {
+                    cells[name.GetHashCode()].Value = new FormulaError(e.Message);
+                }
+            }
+            //update value of other cells
+            iterator = set.GetEnumerator();
+            iterator.MoveNext();
+            while (iterator.MoveNext())
+            {
+                try
+                {
+                    cells[iterator.Current.GetHashCode()].Value = ((Formula)cells[iterator.Current.GetHashCode()].Content).Evaluate(s => ((double)cells[s.ToUpper().GetHashCode()].Value));
+                }
+                catch (Exception e)
+                {
+                    cells[iterator.Current.GetHashCode()].Value = new FormulaError(e.Message);
+                }
+            }
+            Changed = true;
             return set;
         }
 
@@ -314,7 +487,7 @@ namespace SS
             {
                 throw new ArgumentNullException();
             }
-            if (name == null || !validCellName.IsMatch(name))
+            if (name == null || !validCellName.IsMatch(name) || !IsValid.IsMatch(name))
             {
                 throw new InvalidNameException();
             }
@@ -337,15 +510,31 @@ namespace SS
             {
                 dg.RemoveDependency(name, iterator.Current);
             }
-            // update cell contents
+            // update cell contents and value
             if (!cells.ContainsKey(name.GetHashCode()))
             {
-                cells.Add(name.GetHashCode(), new Cell(name, text));
+                cells.Add(name.GetHashCode(), new Cell(name, text, text));
             }
             else
             {
-                cells[name.GetHashCode()].content = text;
+                cells[name.GetHashCode()].Content = text;
+                cells[name.GetHashCode()].Value = text;
             }
+            //update value of other cells
+            iterator = set.GetEnumerator();
+            iterator.MoveNext();
+            while (iterator.MoveNext())
+            {
+                try
+                {
+                    cells[iterator.Current.GetHashCode()].Value = ((Formula)cells[iterator.Current.GetHashCode()].Content).Evaluate(s => ((double)cells[s.ToUpper().GetHashCode()].Value));
+                }
+                catch (Exception e)
+                {
+                    cells[iterator.Current.GetHashCode()].Value = new FormulaError(e.Message);
+                }
+            }
+            Changed = true;
             return set;
         }
 
@@ -361,7 +550,7 @@ namespace SS
         /// </summary>
         protected override ISet<string> SetCellContents(string name, double number)
         {
-            if (name == null || !validCellName.IsMatch(name))
+            if (name == null || !validCellName.IsMatch(name) || !IsValid.IsMatch(name))
             {
                 throw new InvalidNameException();
             }
@@ -384,15 +573,31 @@ namespace SS
             {
                 dg.RemoveDependency(name, iterator.Current);
             }
-            // update cell contents
+            // update cell contents and value
             if (!cells.ContainsKey(name.GetHashCode()))
             {
-                cells.Add(name.GetHashCode(), new Cell(name, number));
+                cells.Add(name.GetHashCode(), new Cell(name, number, number));
             }
             else
             {
-                cells[name.GetHashCode()].content = number;
+                cells[name.GetHashCode()].Content = number;
+                cells[name.GetHashCode()].Value = number;
             }
+            //update value of other cells
+            iterator = set.GetEnumerator();
+            iterator.MoveNext();
+            while (iterator.MoveNext())
+            {
+                try
+                {
+                    cells[iterator.Current.GetHashCode()].Value = ((Formula)cells[iterator.Current.GetHashCode()].Content).Evaluate(s => ((double)cells[s.ToUpper().GetHashCode()].Value));
+                }
+                catch (Exception e)
+                {
+                    cells[iterator.Current.GetHashCode()].Value = new FormulaError(e.Message);
+                }
+            }
+            Changed = true;
             return set;
         }
 
@@ -433,22 +638,21 @@ namespace SS
             {
                 throw new ArgumentNullException();
             }
-            if (name == null || !validCellName.IsMatch(name))
+            if (name == null || !validCellName.IsMatch(name) || !IsValid.IsMatch(name.ToUpper()))
             {
                 throw new InvalidNameException();
             }
             double parse;
             if (double.TryParse(content, out parse))
             {
-                return SetCellContents(name, parse);
+                return SetCellContents(name.ToUpper(), parse);
             }
             if (content.StartsWith("="))
             {
-                Regex cellName = new Regex("[a-zA-Z]+[1-9][0-9]*");
-                Formula f = new Formula(content.Remove(0, 1), s => s.ToUpper(), s => cellName.IsMatch(s));
-                return SetCellContents(name, f);
+                Formula f = new Formula(content.Remove(0, 1), s => s.ToUpper(), s => (validCellName.IsMatch(s) && IsValid.IsMatch(s)));
+                return SetCellContents(name.ToUpper(), f);
             }
-            return SetCellContents(name, content);
+            return SetCellContents(name.ToUpper(), content);
         }
 
         /// <summary>
@@ -474,11 +678,11 @@ namespace SS
             {
                 throw new ArgumentNullException();
             }
-            if (!validCellName.IsMatch(name))
+            if (!validCellName.IsMatch(name) || !IsValid.IsMatch(name.ToUpper()))
             {
                 throw new InvalidNameException();
             }
-            return dg.GetDependees(name);
+            return dg.GetDependees(name.ToUpper());
         }
 
         /// <summary>
@@ -487,26 +691,72 @@ namespace SS
         private class Cell
         {
             /// <summary>
-            /// Holds the content of the cell.
+            /// Content of cell.
             /// </summary>
-            public object content { get; set; }
+            private object _Content;
+
             /// <summary>
-            /// Holds the valid name of the cell.
+            /// Name of cell.
             /// </summary>
-            public string name { get; }
+            private string _Name;
+
             /// <summary>
-            /// Holds the value of the cell.
+            /// Value of cell.
             /// </summary>
-            public object value { get; }
+            private object _Value;
 
             /// <summary>
             /// Creates a cell with the provided name and content.
             /// </summary>
-            public Cell(string cellName, object cellContent)
+            public Cell(string cellName, object cellContent, object cellValue)
             {
-                name = cellName;
-                content = cellContent;
-                value = null//;
+                Name = cellName.ToUpper();
+                Content = cellContent;
+                Value = cellValue;
+            }
+
+            /// <summary>
+            /// Holds the content of the cell.
+            /// </summary>
+            public object Content {
+                get
+                {
+                    return _Content;
+                }
+                set
+                {
+                    _Content = value;
+                }
+            }
+
+            /// <summary>
+            /// Holds the valid name of the cell.
+            /// </summary>
+            public string Name
+            {
+                get
+                {
+                    return _Name;
+                }
+                set
+                {
+                    _Name = value;
+                }
+            }
+
+            /// <summary>
+            /// Holds the value of the cell.
+            /// </summary>
+            public object Value
+            {
+                get
+                {
+                    return _Value;
+                }
+                set
+                {
+                    _Value = value;
+                }
             }
         }
     }
