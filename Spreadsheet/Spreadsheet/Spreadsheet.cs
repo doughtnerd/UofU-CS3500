@@ -165,8 +165,8 @@ namespace SS
 
             using (XmlReader reader = XmlReader.Create(source, settings))
             {
-                try
-                {
+                //try
+                //{
                     while (reader.Read())
                     {
                         if (reader.IsStartElement())
@@ -193,23 +193,30 @@ namespace SS
                                     {
                                         IsValid = oldIsValid;
                                         SetContentsOfCell(reader["name"], reader["contents"]);
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        throw new SpreadsheetReadException(e.Message);
+                                    }
+                                    try
+                                    {
                                         IsValid = newIsValid;
                                         SetContentsOfCell(reader["name"], reader["contents"]);
                                     }
                                     catch (Exception e)
                                     {
-                                        throw new SpreadsheetReadException(e.Message);
+                                        throw new SpreadsheetVersionException(e.Message);
                                     }
                                     break;
                             }
 
                         }
                     }
-                }
-                catch (Exception)
-                {
-                    throw new IOException();
-                }
+                //}
+                //catch (Exception)
+                //{
+                //    throw new IOException();
+                //}
             }
             Changed = false;
         }
