@@ -165,58 +165,51 @@ namespace SS
 
             using (XmlReader reader = XmlReader.Create(source, settings))
             {
-                //try
-                //{
-                    while (reader.Read())
+                while (reader.Read())
+                {
+                    if (reader.IsStartElement())
                     {
-                        if (reader.IsStartElement())
+                        switch (reader.Name)
                         {
-                            switch (reader.Name)
-                            {
-                                case "spreadsheet":
-                                    try
-                                    {
-                                        oldIsValid = new Regex(reader["IsValid"]);
-                                    }
-                                    catch (Exception e)
-                                    {
-                                        throw new SpreadsheetReadException(e.Message);
-                                    }
-                                    break;
+                            case "spreadsheet":
+                                try
+                                {
+                                    oldIsValid = new Regex(reader["IsValid"]);
+                                }
+                                catch (Exception e)
+                                {
+                                    throw new SpreadsheetReadException(e.Message);
+                                }
+                                break;
 
-                                case "cell":
-                                    if (cells.ContainsKey(reader["name"].ToUpper().GetHashCode()))
-                                    {
-                                        throw new SpreadsheetReadException("Duplicate cell names in file.");
-                                    }
-                                    try
-                                    {
-                                        IsValid = oldIsValid;
-                                        SetContentsOfCell(reader["name"], reader["contents"]);
-                                    }
-                                    catch (Exception e)
-                                    {
-                                        throw new SpreadsheetReadException(e.Message);
-                                    }
-                                    try
-                                    {
-                                        IsValid = newIsValid;
-                                        SetContentsOfCell(reader["name"], reader["contents"]);
-                                    }
-                                    catch (Exception e)
-                                    {
-                                        throw new SpreadsheetVersionException(e.Message);
-                                    }
-                                    break;
-                            }
-
+                            case "cell":
+                                if (cells.ContainsKey(reader["name"].ToUpper().GetHashCode()))
+                                {
+                                    throw new SpreadsheetReadException("Duplicate cell names in file.");
+                                }
+                                try
+                                {
+                                    IsValid = oldIsValid;
+                                    SetContentsOfCell(reader["name"], reader["contents"]);
+                                }
+                                catch (Exception e)
+                                {
+                                    throw new SpreadsheetReadException(e.Message);
+                                }
+                                try
+                                {
+                                    IsValid = newIsValid;
+                                    SetContentsOfCell(reader["name"], reader["contents"]);
+                                }
+                                catch (Exception e)
+                                {
+                                    throw new SpreadsheetVersionException(e.Message);
+                                }
+                                break;
                         }
+
                     }
-                //}
-                //catch (Exception)
-                //{
-                //    throw new IOException();
-                //}
+                }
             }
             Changed = false;
         }
