@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<spreadsheet IsValid="^.*$" xmlns="urn:spreadsheet-schema">
+	<cell name="AN1" contents="=A1*N1+16/2" />
+	<cell name="A1" contents="=7-3" />
+	<cell name="C1" contents="=B1/3-1" />
+	<cell name="B1" contents="9" />
+	<cell name="N1" contents="=B1+1" />
+</spreadsheet>
