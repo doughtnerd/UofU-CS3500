@@ -19,6 +19,7 @@ namespace SpreadsheetGUI
         }
 
         public event Action CloseEvent;
+        public event Action NewWindowEvent;
         public event Action<FileInfo> OpenEvent;
         public event Action<FileInfo> SaveEvent;
 

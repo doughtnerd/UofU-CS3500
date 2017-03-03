@@ -12,6 +12,7 @@ namespace SpreadsheetGUI
         event Action<FileInfo> SaveEvent;
         event Action<FileInfo> OpenEvent;
         event Action CloseEvent;
+        event Action NewWindowEvent;
 
         bool GetCellValue(string name, out string contents);
 
