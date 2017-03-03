@@ -30,20 +30,20 @@
         {
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.newWindowToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.newToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.openToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.saveToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.spreadsheetPanel1 = new SSGui.SpreadsheetPanel();
-            this.textBox1 = new System.Windows.Forms.TextBox();
+            this.cellValueTextBox = new System.Windows.Forms.TextBox();
             this.cellValueLabel = new System.Windows.Forms.Label();
-            this.textBox2 = new System.Windows.Forms.TextBox();
-            this.label1 = new System.Windows.Forms.Label();
-            this.cellContentEditGroupBox = new System.Windows.Forms.GroupBox();
-            this.textBox3 = new System.Windows.Forms.TextBox();
+            this.cellNameTextBox = new System.Windows.Forms.TextBox();
+            this.cellNameLabel = new System.Windows.Forms.Label();
+            this.cellDetailsEditGroupBox = new System.Windows.Forms.GroupBox();
+            this.cellContentsTextBox = new System.Windows.Forms.TextBox();
+            this.spreadsheetPanel1 = new SSGui.SpreadsheetPanel();
             this.menuStrip1.SuspendLayout();
-            this.cellContentEditGroupBox.SuspendLayout();
+            this.cellDetailsEditGroupBox.SuspendLayout();
             this.SuspendLayout();
             // 
             // menuStrip1
@@ -61,7 +61,7 @@
             // fileToolStripMenuItem
             // 
             this.fileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.newWindowToolStripMenuItem,
+            this.newToolStripMenuItem,
             this.openToolStripMenuItem,
             this.saveToolStripMenuItem,
             this.exitToolStripMenuItem});
@@ -69,11 +69,11 @@
             this.fileToolStripMenuItem.Size = new System.Drawing.Size(64, 36);
             this.fileToolStripMenuItem.Text = "File";
             // 
-            // newWindowToolStripMenuItem
+            // newToolStripMenuItem
             // 
-            this.newWindowToolStripMenuItem.Name = "newWindowToolStripMenuItem";
-            this.newWindowToolStripMenuItem.Size = new System.Drawing.Size(269, 38);
-            this.newWindowToolStripMenuItem.Text = "New";
+            this.newToolStripMenuItem.Name = "newToolStripMenuItem";
+            this.newToolStripMenuItem.Size = new System.Drawing.Size(269, 38);
+            this.newToolStripMenuItem.Text = "New";
             // 
             // helpToolStripMenuItem
             // 
@@ -99,24 +99,14 @@
             this.exitToolStripMenuItem.Size = new System.Drawing.Size(269, 38);
             this.exitToolStripMenuItem.Text = "Exit";
             // 
-            // spreadsheetPanel1
+            // cellValueTextBox
             // 
-            this.spreadsheetPanel1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.spreadsheetPanel1.Location = new System.Drawing.Point(12, 170);
-            this.spreadsheetPanel1.Name = "spreadsheetPanel1";
-            this.spreadsheetPanel1.Size = new System.Drawing.Size(1619, 735);
-            this.spreadsheetPanel1.TabIndex = 1;
-            // 
-            // textBox1
-            // 
-            this.textBox1.Anchor = System.Windows.Forms.AnchorStyles.Right;
-            this.textBox1.Location = new System.Drawing.Point(1323, 65);
-            this.textBox1.Name = "textBox1";
-            this.textBox1.ReadOnly = true;
-            this.textBox1.Size = new System.Drawing.Size(272, 31);
-            this.textBox1.TabIndex = 0;
+            this.cellValueTextBox.Anchor = System.Windows.Forms.AnchorStyles.Right;
+            this.cellValueTextBox.Location = new System.Drawing.Point(1323, 65);
+            this.cellValueTextBox.Name = "cellValueTextBox";
+            this.cellValueTextBox.ReadOnly = true;
+            this.cellValueTextBox.Size = new System.Drawing.Size(272, 31);
+            this.cellValueTextBox.TabIndex = 0;
             // 
             // cellValueLabel
             // 
@@ -128,58 +118,68 @@
             this.cellValueLabel.TabIndex = 1;
             this.cellValueLabel.Text = "Cell Value";
             // 
-            // textBox2
+            // cellNameTextBox
             // 
-            this.textBox2.Anchor = System.Windows.Forms.AnchorStyles.Right;
-            this.textBox2.Location = new System.Drawing.Point(1323, 28);
-            this.textBox2.Name = "textBox2";
-            this.textBox2.ReadOnly = true;
-            this.textBox2.Size = new System.Drawing.Size(272, 31);
-            this.textBox2.TabIndex = 2;
+            this.cellNameTextBox.Anchor = System.Windows.Forms.AnchorStyles.Right;
+            this.cellNameTextBox.Location = new System.Drawing.Point(1323, 28);
+            this.cellNameTextBox.Name = "cellNameTextBox";
+            this.cellNameTextBox.ReadOnly = true;
+            this.cellNameTextBox.Size = new System.Drawing.Size(272, 31);
+            this.cellNameTextBox.TabIndex = 2;
             // 
-            // label1
+            // cellNameLabel
             // 
-            this.label1.Anchor = System.Windows.Forms.AnchorStyles.Right;
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(1207, 34);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(111, 25);
-            this.label1.TabIndex = 3;
-            this.label1.Text = "Cell Name";
+            this.cellNameLabel.Anchor = System.Windows.Forms.AnchorStyles.Right;
+            this.cellNameLabel.AutoSize = true;
+            this.cellNameLabel.Location = new System.Drawing.Point(1207, 34);
+            this.cellNameLabel.Name = "cellNameLabel";
+            this.cellNameLabel.Size = new System.Drawing.Size(111, 25);
+            this.cellNameLabel.TabIndex = 3;
+            this.cellNameLabel.Text = "Cell Name";
             // 
-            // cellContentEditGroupBox
+            // cellDetailsEditGroupBox
             // 
-            this.cellContentEditGroupBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            this.cellDetailsEditGroupBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.cellContentEditGroupBox.Controls.Add(this.cellValueLabel);
-            this.cellContentEditGroupBox.Controls.Add(this.label1);
-            this.cellContentEditGroupBox.Controls.Add(this.textBox1);
-            this.cellContentEditGroupBox.Controls.Add(this.textBox2);
-            this.cellContentEditGroupBox.Controls.Add(this.textBox3);
-            this.cellContentEditGroupBox.Location = new System.Drawing.Point(13, 44);
-            this.cellContentEditGroupBox.Name = "cellContentEditGroupBox";
-            this.cellContentEditGroupBox.Size = new System.Drawing.Size(1619, 120);
-            this.cellContentEditGroupBox.TabIndex = 3;
-            this.cellContentEditGroupBox.TabStop = false;
-            this.cellContentEditGroupBox.Text = "Edit Cell Contents";
+            this.cellDetailsEditGroupBox.Controls.Add(this.cellValueLabel);
+            this.cellDetailsEditGroupBox.Controls.Add(this.cellNameLabel);
+            this.cellDetailsEditGroupBox.Controls.Add(this.cellValueTextBox);
+            this.cellDetailsEditGroupBox.Controls.Add(this.cellNameTextBox);
+            this.cellDetailsEditGroupBox.Controls.Add(this.cellContentsTextBox);
+            this.cellDetailsEditGroupBox.Location = new System.Drawing.Point(13, 44);
+            this.cellDetailsEditGroupBox.Name = "cellDetailsEditGroupBox";
+            this.cellDetailsEditGroupBox.Size = new System.Drawing.Size(1619, 120);
+            this.cellDetailsEditGroupBox.TabIndex = 3;
+            this.cellDetailsEditGroupBox.TabStop = false;
+            this.cellDetailsEditGroupBox.Text = "Cell Details";
             // 
-            // textBox3
+            // cellContentsTextBox
             // 
-            this.textBox3.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            this.cellContentsTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.textBox3.Location = new System.Drawing.Point(7, 31);
-            this.textBox3.Multiline = true;
-            this.textBox3.Name = "textBox3";
-            this.textBox3.Size = new System.Drawing.Size(1194, 83);
-            this.textBox3.TabIndex = 0;
+            this.cellContentsTextBox.Location = new System.Drawing.Point(7, 31);
+            this.cellContentsTextBox.Multiline = true;
+            this.cellContentsTextBox.Name = "cellContentsTextBox";
+            this.cellContentsTextBox.Size = new System.Drawing.Size(1194, 83);
+            this.cellContentsTextBox.TabIndex = 0;
+            // 
+            // spreadsheetPanel1
+            // 
+            this.spreadsheetPanel1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.spreadsheetPanel1.Location = new System.Drawing.Point(12, 170);
+            this.spreadsheetPanel1.Name = "spreadsheetPanel1";
+            this.spreadsheetPanel1.Size = new System.Drawing.Size(1619, 735);
+            this.spreadsheetPanel1.TabIndex = 1;
             // 
             // SpreadsheetForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(12F, 25F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1644, 917);
-            this.Controls.Add(this.cellContentEditGroupBox);
+            this.Controls.Add(this.cellDetailsEditGroupBox);
             this.Controls.Add(this.spreadsheetPanel1);
             this.Controls.Add(this.menuStrip1);
             this.MainMenuStrip = this.menuStrip1;
@@ -188,8 +188,8 @@
             this.Text = "Spreadsheet";
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
-            this.cellContentEditGroupBox.ResumeLayout(false);
-            this.cellContentEditGroupBox.PerformLayout();
+            this.cellDetailsEditGroupBox.ResumeLayout(false);
+            this.cellDetailsEditGroupBox.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -199,18 +199,18 @@
 
         private System.Windows.Forms.MenuStrip menuStrip1;
         private System.Windows.Forms.ToolStripMenuItem fileToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem newWindowToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem newToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem helpToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem openToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem saveToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem exitToolStripMenuItem;
         private SSGui.SpreadsheetPanel spreadsheetPanel1;
-        private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.TextBox textBox2;
+        private System.Windows.Forms.Label cellNameLabel;
+        private System.Windows.Forms.TextBox cellNameTextBox;
         private System.Windows.Forms.Label cellValueLabel;
-        private System.Windows.Forms.TextBox textBox1;
-        private System.Windows.Forms.GroupBox cellContentEditGroupBox;
-        private System.Windows.Forms.TextBox textBox3;
+        private System.Windows.Forms.TextBox cellValueTextBox;
+        private System.Windows.Forms.GroupBox cellDetailsEditGroupBox;
+        private System.Windows.Forms.TextBox cellContentsTextBox;
     }
 }
 
