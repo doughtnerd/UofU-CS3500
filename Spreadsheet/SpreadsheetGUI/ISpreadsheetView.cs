@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace SpreadsheetGUI
 {
@@ -11,8 +12,7 @@ namespace SpreadsheetGUI
     {
         event Action<FileInfo> SaveEvent;
         event Action<FileInfo> OpenEvent;
-        event Action CloseEvent;
-        event Action NewWindowEvent;
+        event Action<FormClosingEventArgs> CloseEvent;
 
         bool GetCellValue(string name, out string contents);
 

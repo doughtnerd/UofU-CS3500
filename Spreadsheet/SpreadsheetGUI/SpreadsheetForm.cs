@@ -18,8 +18,7 @@ namespace SpreadsheetGUI
             InitializeComponent();
         }
 
-        public event Action CloseEvent;
-        public event Action NewWindowEvent;
+        public event Action<FormClosingEventArgs> CloseEvent;
         public event Action<FileInfo> OpenEvent;
         public event Action<FileInfo> SaveEvent;
 
@@ -31,6 +30,45 @@ namespace SpreadsheetGUI
         public bool SetCellValue(string name, string value)
         {
             throw new NotImplementedException();
+        }
+
+        private void newToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            SpreadsheetGUIApplicationContext.GetContext().RunNew();
+        }
+
+        private void exitToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Close();
+        }
+
+        private void openToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog dialog = new OpenFileDialog();
+            dialog.Filter = "Spreadsheet Files|*.ss|All Files|*.*";
+            dialog.Title = "Select a Spreadsheet File";
+
+            if (dialog.ShowDialog() == DialogResult.OK)
+            {
+                OpenEvent?.Invoke(new FileInfo(dialog.FileName));
+            }
+        }
+
+        private void saveToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            SaveFileDialog dialog = new SaveFileDialog();
+            dialog.Filter = "Spreadsheet Files|*.ss|All Files|*.*";
+            dialog.Title = "Save Spreadsheet to File";
+
+            if (dialog.ShowDialog() == DialogResult.OK)
+            {
+                SaveEvent?.Invoke(new FileInfo(dialog.FileName));
+            }
+        }
+
+        private void SpreadsheetForm_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            CloseEvent?.Invoke(e);
         }
     }
 }
