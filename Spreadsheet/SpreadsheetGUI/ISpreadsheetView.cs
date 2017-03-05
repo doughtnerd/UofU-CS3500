@@ -13,9 +13,12 @@ namespace SpreadsheetGUI
         event Action<FileInfo> SaveEvent;
         event Action<FileInfo> OpenEvent;
         event Action<FormClosingEventArgs> CloseEvent;
+        event Action<string> CellSelectedEvent;
 
         bool GetCellValue(string name, out string contents);
 
         bool SetCellValue(string name, string value);
+
+        void SetCellContentsText(string s);
     }
 }

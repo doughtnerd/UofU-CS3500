@@ -13,20 +13,42 @@ namespace SpreadsheetGUI
     {
         ISpreadsheetView view;
         Spreadsheet ss;
-        private FileInfo spreadsheetFile;
+        FileInfo spreadsheetFile;
 
         public Controller(ISpreadsheetView view)
         {
             this.view = view;
+            ss = new Spreadsheet();
             view.CloseEvent += HandleCloseEvent;
             view.SaveEvent += HandleSaveEvent;
             view.OpenEvent += HandleOpenEvent;
-            ss = new Spreadsheet();
+        }
+
+        public Controller(ISpreadsheetView view, Spreadsheet sheet)
+        {
+            this.view = view;
+            ss = sheet;
+            view.CloseEvent += HandleCloseEvent;
+            view.SaveEvent += HandleSaveEvent;
+            view.OpenEvent += HandleOpenEvent;
+            view.CellSelectedEvent += HandleCellSelectedEvent;
+        }
+
+        public void HandleCellSelectedEvent(string name)
+        {
+            view.SetCellContentsText(ss.GetCellContents(name).ToString());
         }
 
         public void HandleOpenEvent(FileInfo file)
         {
-
+            StreamReader read = new StreamReader(file.FullName);
+            Spreadsheet sheet = new Spreadsheet(read, ss.IsValid);
+            Controller c;
+            SpreadsheetGUIApplicationContext.GetContext().RunNew(sheet, out c);
+            foreach(string s in sheet.GetNamesOfAllNonemptyCells())
+            {
+                c.view.SetCellValue(s, sheet.GetCellValue(s).ToString());
+            }
         }
 
         public void HandleSaveEvent(FileInfo file)

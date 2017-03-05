@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SSGui;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -16,20 +17,43 @@ namespace SpreadsheetGUI
         public SpreadsheetForm()
         {
             InitializeComponent();
+            spreadsheetPanel1.SelectionChanged += HandleCellSelected;
         }
 
         public event Action<FormClosingEventArgs> CloseEvent;
         public event Action<FileInfo> OpenEvent;
         public event Action<FileInfo> SaveEvent;
+        public event Action<string> CellSelectedEvent;
 
-        public bool GetCellValue(string name, out string contents)
+        public bool GetCellValue(string name, out string value)
         {
-            throw new NotImplementedException();
+            int x;
+            int y;
+            CellNameToCoords(name, out x, out y);
+            if (x == 0 || y == 0)
+            {
+                value = "";
+                return false;
+            } else
+            {
+                spreadsheetPanel1.GetValue(x, y, out value);
+                return true;
+            }
+
         }
 
         public bool SetCellValue(string name, string value)
         {
-            throw new NotImplementedException();
+            int x;
+            int y;
+            CellNameToCoords(name, out x, out y);
+            Console.WriteLine("Cell: " + x + ", " + y + " ("+name+") set to " + value);
+            if(x==0 || y == 0)
+            {
+                return false;
+            }
+            spreadsheetPanel1.SetValue(x-1, y-1, value);
+            return true;
         }
 
         private void newToolStripMenuItem_Click(object sender, EventArgs e)
@@ -69,6 +93,62 @@ namespace SpreadsheetGUI
         private void SpreadsheetForm_FormClosing(object sender, FormClosingEventArgs e)
         {
             CloseEvent?.Invoke(e);
+        }
+
+        private void HandleCellSelected(SpreadsheetPanel panel)
+        {
+            int x;
+            int y;
+            panel.GetSelection(out x, out y);
+            string selectedCellName = CellNameFromCoords(x + 1, y + 1);
+            this.cellNameTextBox.Text = selectedCellName;
+            string val;
+            if(panel.GetValue(x, y, out val))
+            {
+                this.cellValueTextBox.Text = val;
+                CellSelectedEvent?.Invoke(selectedCellName);
+            }
+        }
+
+        private static void CellNameToCoords(string name, out int x, out int y)
+        {
+            x = 0;
+            y = 0;
+            name = name.ToUpper();
+            for(int i = 0; i < name.Length; i++)
+            {
+                if (char.IsLetter(name[i]))
+                {
+                    x += (int)name[i] - 64;
+                } else
+                {
+                    y = int.Parse(name.Substring(i, name.Length - 1));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Returns a spreadsheet cell name based off of the x and y values passed.
+        /// </summary>
+        private static string CellNameFromCoords(int x, int y)
+        {
+            int dividend = x;
+            string columnName = String.Empty;
+            int modulo;
+
+            while (dividend > 0)
+            {
+                modulo = (dividend - 1) % 26;
+                columnName = Convert.ToChar(65 + modulo).ToString() + columnName;
+                dividend = (int)((dividend - modulo) / 26);
+            }
+
+            return columnName +y;
+        }
+
+        public void SetCellContentsText(string s)
+        {
+            this.cellContentsTextBox.Text = s;
         }
     }
 }

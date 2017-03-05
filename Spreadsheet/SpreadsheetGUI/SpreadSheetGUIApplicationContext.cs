@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using SS;
 
 namespace SpreadsheetGUI
 {
@@ -29,6 +30,19 @@ namespace SpreadsheetGUI
         {
             SpreadsheetForm form = new SpreadsheetForm();
             new Controller(form);
+
+            windowCount++;
+
+            form.FormClosed += (o, e) => { if (--windowCount <= 0) ExitThread(); };
+
+            form.Show();
+        }
+
+        public void RunNew(Spreadsheet sheet, out Controller controller)
+        {
+            SpreadsheetForm form = new SpreadsheetForm();
+            Controller c = new Controller(form, sheet);
+            controller = c;
 
             windowCount++;
 
