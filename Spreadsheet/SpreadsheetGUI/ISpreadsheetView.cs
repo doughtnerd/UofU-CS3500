@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace SpreadsheetGUI
 {
-    interface ISpreadsheetView
+    public interface ISpreadsheetView
     {
         event Action<FileInfo> SaveEvent;
         event Action<FileInfo> OpenEvent;

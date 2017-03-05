@@ -35,10 +35,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PS6GradingTests", "PS6Gradi
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpreadsheetGUI", "SpreadsheetGUI\SpreadsheetGUI.csproj", "{14CC8634-FDB1-4B82-88AF-DDFFD2AEC2AE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ControllerTester", "ControllerTester\ControllerTester.csproj", "{BA04FB06-9ACD-4178-B13D-65A42DD75421}"
+EndProject
 Global
-	GlobalSection(Performance) = preSolution
-		HasPerformanceSessions = true
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Debug|x86 = Debug|x86
@@ -144,6 +143,14 @@ Global
 		{14CC8634-FDB1-4B82-88AF-DDFFD2AEC2AE}.Release|Any CPU.Build.0 = Release|Any CPU
 		{14CC8634-FDB1-4B82-88AF-DDFFD2AEC2AE}.Release|x86.ActiveCfg = Release|Any CPU
 		{14CC8634-FDB1-4B82-88AF-DDFFD2AEC2AE}.Release|x86.Build.0 = Release|Any CPU
+		{BA04FB06-9ACD-4178-B13D-65A42DD75421}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BA04FB06-9ACD-4178-B13D-65A42DD75421}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BA04FB06-9ACD-4178-B13D-65A42DD75421}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{BA04FB06-9ACD-4178-B13D-65A42DD75421}.Debug|x86.Build.0 = Debug|Any CPU
+		{BA04FB06-9ACD-4178-B13D-65A42DD75421}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BA04FB06-9ACD-4178-B13D-65A42DD75421}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BA04FB06-9ACD-4178-B13D-65A42DD75421}.Release|x86.ActiveCfg = Release|Any CPU
+		{BA04FB06-9ACD-4178-B13D-65A42DD75421}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
