@@ -163,51 +163,53 @@ namespace SS
             settings.Schemas = sc;
             settings.ValidationEventHandler += ValidationCallback;
 
-            using (XmlReader reader = XmlReader.Create(source, settings))
+            using (source)
             {
-                while (reader.Read())
+                using (XmlReader reader = XmlReader.Create(source, settings))
                 {
-                    if (reader.IsStartElement())
+                    while (reader.Read())
                     {
-                        switch (reader.Name)
+                        if (reader.IsStartElement())
                         {
-                            case "spreadsheet":
-                                try
-                                {
-                                    oldIsValid = new Regex(reader["IsValid"]);
-                                }
-                                catch (Exception e)
-                                {
-                                    throw new SpreadsheetReadException(e.Message);
-                                }
-                                break;
+                            switch (reader.Name)
+                            {
+                                case "spreadsheet":
+                                    try
+                                    {
+                                        oldIsValid = new Regex(reader["IsValid"]);
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        throw new SpreadsheetReadException(e.Message);
+                                    }
+                                    break;
 
-                            case "cell":
-                                if (cells.ContainsKey(reader["name"].ToUpper().GetHashCode()))
-                                {
-                                    throw new SpreadsheetReadException("Duplicate cell names in file.");
-                                }
-                                try
-                                {
-                                    IsValid = oldIsValid;
-                                    SetContentsOfCell(reader["name"], reader["contents"]);
-                                }
-                                catch (Exception e)
-                                {
-                                    throw new SpreadsheetReadException(e.Message);
-                                }
-                                try
-                                {
-                                    IsValid = newIsValid;
-                                    SetContentsOfCell(reader["name"], reader["contents"]);
-                                }
-                                catch (Exception e)
-                                {
-                                    throw new SpreadsheetVersionException(e.Message);
-                                }
-                                break;
+                                case "cell":
+                                    if (cells.ContainsKey(reader["name"].ToUpper().GetHashCode()))
+                                    {
+                                        throw new SpreadsheetReadException("Duplicate cell names in file.");
+                                    }
+                                    try
+                                    {
+                                        IsValid = oldIsValid;
+                                        SetContentsOfCell(reader["name"], reader["contents"]);
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        throw new SpreadsheetReadException(e.Message);
+                                    }
+                                    try
+                                    {
+                                        IsValid = newIsValid;
+                                        SetContentsOfCell(reader["name"], reader["contents"]);
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        throw new SpreadsheetVersionException(e.Message);
+                                    }
+                                    break;
+                            }
                         }
-
                     }
                 }
             }
@@ -329,37 +331,40 @@ namespace SS
             XmlWriterSettings settings = new XmlWriterSettings();
             settings.Indent = true;
             settings.IndentChars = "\t";
-            using (XmlWriter writer = XmlWriter.Create(dest, settings))
+            using (dest)
             {
-                try
+                using (XmlWriter writer = XmlWriter.Create(dest, settings))
                 {
-                    writer.WriteStartDocument();
-                    writer.WriteStartElement("", "spreadsheet", "urn:spreadsheet-schema");
-                    writer.WriteAttributeString("IsValid", IsValid.ToString());
-                    foreach (Cell c in cells.Values)
+                    try
                     {
-                        writer.WriteStartElement("cell");
-                        writer.WriteAttributeString("name", c.Name);
-                        if (c.Content.GetType() == typeof(string))
+                        writer.WriteStartDocument();
+                        writer.WriteStartElement("", "spreadsheet", "urn:spreadsheet-schema");
+                        writer.WriteAttributeString("IsValid", IsValid.ToString());
+                        foreach (Cell c in cells.Values)
                         {
-                            writer.WriteAttributeString("contents", ((string)c.Content));
-                        }
-                        else if (c.Content.GetType() == typeof(double))
-                        {
-                            writer.WriteAttributeString("contents", ((double)c.Content).ToString());
-                        }
-                        else if (c.Content.GetType() == typeof(Formula))
-                        {
-                            writer.WriteAttributeString("contents", "=" + ((Formula)c.Content).ToString());
+                            writer.WriteStartElement("cell");
+                            writer.WriteAttributeString("name", c.Name);
+                            if (c.Content.GetType() == typeof(string))
+                            {
+                                writer.WriteAttributeString("contents", ((string)c.Content));
+                            }
+                            else if (c.Content.GetType() == typeof(double))
+                            {
+                                writer.WriteAttributeString("contents", ((double)c.Content).ToString());
+                            }
+                            else if (c.Content.GetType() == typeof(Formula))
+                            {
+                                writer.WriteAttributeString("contents", "=" + ((Formula)c.Content).ToString());
+                            }
+                            writer.WriteEndElement();
                         }
                         writer.WriteEndElement();
+                        writer.WriteEndDocument();
                     }
-                    writer.WriteEndElement();
-                    writer.WriteEndDocument();
-                }
-                catch (Exception)
-                {
-                    throw new IOException();
+                    catch (Exception)
+                    {
+                        throw new IOException();
+                    }
                 }
             }
             Changed = false;

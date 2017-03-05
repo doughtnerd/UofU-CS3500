@@ -7,20 +7,7 @@ namespace ControllerTester
 {
     public class ViewStub : ISpreadsheetView
     {
-        public event Action CloseEvent;
-        public event Action NewWindowEvent;
-        public event Action<FileInfo> OpenEvent;
-        public event Action<FileInfo> SaveEvent;
-
-        public bool GetCellValue(string name, out string contents)
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool SetCellValue(string name, string value)
-        {
-            throw new NotImplementedException();
-        }
+        
     }
 
     [TestClass]
