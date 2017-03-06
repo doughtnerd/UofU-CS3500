@@ -1,4 +1,5 @@
-﻿using SS;
+﻿using Formulas;
+using SS;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -15,13 +16,8 @@ namespace SpreadsheetGUI
         Spreadsheet ss;
         FileInfo spreadsheetFile;
 
-        public Controller(ISpreadsheetView view)
+        public Controller(ISpreadsheetView view):this(view, new Spreadsheet())
         {
-            this.view = view;
-            ss = new Spreadsheet();
-            view.CloseEvent += HandleCloseEvent;
-            view.SaveEvent += HandleSaveEvent;
-            view.OpenEvent += HandleOpenEvent;
         }
 
         public Controller(ISpreadsheetView view, Spreadsheet sheet)
@@ -32,11 +28,37 @@ namespace SpreadsheetGUI
             view.SaveEvent += HandleSaveEvent;
             view.OpenEvent += HandleOpenEvent;
             view.CellSelectedEvent += HandleCellSelectedEvent;
+            view.CellContentsChanged += HandleCellContentsChanged;
+        }
+
+        public void HandleCellContentsChanged(string cellName, string contents)
+        {
+            try
+            {
+                ss.SetContentsOfCell(cellName, contents);
+                object val = ss.GetCellValue(cellName);
+                object cont = ss.GetCellContents(cellName);
+                view.SetCellValueText(val.ToString());
+                view.SetCellContentsText(cont is Formula ? "=" + cont.ToString() : cont.ToString());
+                foreach (string s in ss.GetNamesOfAllNonemptyCells())
+                {
+                    string cellValue = ss.GetCellValue(s).ToString();
+                    view.SetCellValue(s, cellValue);
+                }
+            }
+            catch (CircularException)
+            {
+                MessageBox.Show("A circular dependency has been detected.");
+            }
         }
 
         public void HandleCellSelectedEvent(string name)
         {
-            view.SetCellContentsText(ss.GetCellContents(name).ToString());
+            object cont = ss.GetCellContents(name);
+            object val = ss.GetCellValue(name);
+            view.SetCellContentsText(cont is Formula ? "="+cont.ToString():cont.ToString());
+            view.SetCellNameText(name);
+            view.SetCellValueText(val.ToString());
         }
 
         public void HandleOpenEvent(FileInfo file)

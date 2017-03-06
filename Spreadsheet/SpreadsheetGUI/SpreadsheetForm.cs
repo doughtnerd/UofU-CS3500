@@ -1,13 +1,6 @@
 ﻿using SSGui;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace SpreadsheetGUI
@@ -18,12 +11,14 @@ namespace SpreadsheetGUI
         {
             InitializeComponent();
             spreadsheetPanel1.SelectionChanged += HandleCellSelected;
+
         }
 
         public event Action<FormClosingEventArgs> CloseEvent;
         public event Action<FileInfo> OpenEvent;
         public event Action<FileInfo> SaveEvent;
         public event Action<string> CellSelectedEvent;
+        public event Action<string, string> CellContentsChanged;
 
         public bool GetCellValue(string name, out string value)
         {
@@ -47,7 +42,7 @@ namespace SpreadsheetGUI
             int x;
             int y;
             CellNameToCoords(name, out x, out y);
-            Console.WriteLine("Cell: " + x + ", " + y + " ("+name+") set to " + value);
+            //Console.WriteLine("Cell: " + x + ", " + y + " ("+name+") set to " + value);
             if(x==0 || y == 0)
             {
                 return false;
@@ -101,13 +96,7 @@ namespace SpreadsheetGUI
             int y;
             panel.GetSelection(out x, out y);
             string selectedCellName = CellNameFromCoords(x + 1, y + 1);
-            this.cellNameTextBox.Text = selectedCellName;
-            string val;
-            if(panel.GetValue(x, y, out val))
-            {
-                this.cellValueTextBox.Text = val;
-                CellSelectedEvent?.Invoke(selectedCellName);
-            }
+            CellSelectedEvent?.Invoke(selectedCellName);
         }
 
         private static void CellNameToCoords(string name, out int x, out int y)
@@ -149,6 +138,59 @@ namespace SpreadsheetGUI
         public void SetCellContentsText(string s)
         {
             this.cellContentsTextBox.Text = s;
+        }
+
+        private void cellContentsTextBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                e.SuppressKeyPress = true;
+                int x;
+                int y;
+                spreadsheetPanel1.GetSelection(out x, out y);
+                string selectedCellName = CellNameFromCoords(x + 1, y + 1);
+                TextBox textBox = sender as TextBox;
+                if (textBox != null)
+                {
+                    string theText = textBox.Text;
+                    CellContentsChanged?.Invoke(selectedCellName, theText);
+                }
+            }
+        }
+
+        public void SetCellValueText(string s)
+        {
+            this.cellValueTextBox.Text = s;
+        }
+
+        public void SetCellNameText(string s)
+        {
+            this.cellNameTextBox.Text = s;
+        }
+
+        private void spreadsheetPanel1_KeyDown(object sender, KeyEventArgs e)
+        {
+            int x;
+            int y;
+            spreadsheetPanel1.GetSelection(out x, out y);
+            if(e.KeyCode == Keys.Down)
+            {
+                y += 1;
+            }
+            if(e.KeyCode == Keys.Right)
+            {
+                x += 1;
+            }
+            if(e.KeyCode == Keys.Left)
+            {
+                x -= 1;
+            }
+            if (e.KeyCode == Keys.Up)
+            {
+                y -= 1;
+            }
+            spreadsheetPanel1.SetSelection(x, y);
+            //CellSelectedEvent?.Invoke(CellNameFromCoords(x+1,y+1));
         }
     }
 }

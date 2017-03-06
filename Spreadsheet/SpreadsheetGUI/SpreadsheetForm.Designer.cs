@@ -113,6 +113,7 @@
             this.cellValueTextBox.ReadOnly = true;
             this.cellValueTextBox.Size = new System.Drawing.Size(138, 20);
             this.cellValueTextBox.TabIndex = 0;
+            this.cellValueTextBox.TabStop = false;
             // 
             // cellValueLabel
             // 
@@ -134,6 +135,7 @@
             this.cellNameTextBox.ReadOnly = true;
             this.cellNameTextBox.Size = new System.Drawing.Size(138, 20);
             this.cellNameTextBox.TabIndex = 2;
+            this.cellNameTextBox.TabStop = false;
             // 
             // cellNameLabel
             // 
@@ -175,6 +177,7 @@
             this.cellContentsTextBox.Name = "cellContentsTextBox";
             this.cellContentsTextBox.Size = new System.Drawing.Size(201, 45);
             this.cellContentsTextBox.TabIndex = 0;
+            this.cellContentsTextBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.cellContentsTextBox_KeyDown);
             // 
             // spreadsheetPanel1
             // 
@@ -201,6 +204,7 @@
             this.Name = "SpreadsheetForm";
             this.Text = "Spreadsheet";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.SpreadsheetForm_FormClosing);
+            this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.spreadsheetPanel1_KeyDown);
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
             this.cellDetailsEditGroupBox.ResumeLayout(false);
