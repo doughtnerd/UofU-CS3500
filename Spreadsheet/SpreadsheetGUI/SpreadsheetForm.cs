@@ -10,7 +10,7 @@ namespace SpreadsheetGUI
         public SpreadsheetForm()
         {
             InitializeComponent();
-            spreadsheetPanel1.SelectionChanged += HandleCellSelected;
+            spreadsheetPanel1.SelectionChanged += HandleSelectionChange;
 
         }
 
@@ -20,6 +20,12 @@ namespace SpreadsheetGUI
         public event Action<string> CellSelectedEvent;
         public event Action<string, string> CellContentsChanged;
 
+        /// <summary>
+        /// TODO:Remove, currently unused.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
         public bool GetCellValue(string name, out string value)
         {
             int x;
@@ -34,15 +40,19 @@ namespace SpreadsheetGUI
                 spreadsheetPanel1.GetValue(x, y, out value);
                 return true;
             }
-
         }
 
+        /// <summary>
+        /// Sets the named cell to the given value.
+        /// </summary>
+        /// <param name="name">Name of the cell in the view to set.</param>
+        /// <param name="value">Value the the cell should dispaly</param>
+        /// <returns>True if the cell was successfully set on the view, false otherwise.</returns>
         public bool SetCellValue(string name, string value)
         {
             int x;
             int y;
             CellNameToCoords(name, out x, out y);
-            //Console.WriteLine("Cell: " + x + ", " + y + " ("+name+") set to " + value);
             if(x==0 || y == 0)
             {
                 return false;
@@ -50,6 +60,34 @@ namespace SpreadsheetGUI
             spreadsheetPanel1.SetValue(x-1, y-1, value);
             return true;
         }
+
+        /// <summary>
+        /// Sets the text of the cell contents display box to the given string.
+        /// </summary>
+        /// <param name="s">Value the contents box should contain.</param>
+        public void SetCellContentsText(string s)
+        {
+            this.cellContentsTextBox.Text = s;
+        }
+
+        /// <summary>
+        /// Sets the text of the cell value display box to the given string.
+        /// </summary>
+        /// <param name="s">The value the text box should contain.</param>
+        public void SetCellValueText(string s)
+        {
+            this.cellValueTextBox.Text = s;
+        }
+
+        /// <summary>
+        /// Sets the text of the cell name display box to the given string.
+        /// </summary>
+        /// <param name="s"></param>
+        public void SetCellNameText(string s)
+        {
+            this.cellNameTextBox.Text = s;
+        }
+
 
         private void newToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -90,7 +128,7 @@ namespace SpreadsheetGUI
             CloseEvent?.Invoke(e);
         }
 
-        private void HandleCellSelected(SpreadsheetPanel panel)
+        private void HandleSelectionChange(SpreadsheetPanel panel)
         {
             int x;
             int y;
@@ -135,19 +173,25 @@ namespace SpreadsheetGUI
             return columnName +y;
         }
 
-        public void SetCellContentsText(string s)
-        {
-            this.cellContentsTextBox.Text = s;
-        }
-
         private void cellContentsTextBox_KeyDown(object sender, KeyEventArgs e)
         {
+            HandleContentKeyPress(sender, e);
+            HandleArrowKeyPress(sender, e);
+        }
+
+        private void spreadsheet_KeyDown(object sender, KeyEventArgs e)
+        {
+            HandleArrowKeyPress(sender, e);
+        }
+
+        private void HandleContentKeyPress(object sender, KeyEventArgs e)
+        {
+            int x;
+            int y;
+            spreadsheetPanel1.GetSelection(out x, out y);
             if (e.KeyCode == Keys.Enter)
             {
                 e.SuppressKeyPress = true;
-                int x;
-                int y;
-                spreadsheetPanel1.GetSelection(out x, out y);
                 string selectedCellName = CellNameFromCoords(x + 1, y + 1);
                 TextBox textBox = sender as TextBox;
                 if (textBox != null)
@@ -158,39 +202,38 @@ namespace SpreadsheetGUI
             }
         }
 
-        public void SetCellValueText(string s)
-        {
-            this.cellValueTextBox.Text = s;
-        }
-
-        public void SetCellNameText(string s)
-        {
-            this.cellNameTextBox.Text = s;
-        }
-
-        private void spreadsheetPanel1_KeyDown(object sender, KeyEventArgs e)
+        private void HandleArrowKeyPress(object sender, KeyEventArgs e)
         {
             int x;
             int y;
             spreadsheetPanel1.GetSelection(out x, out y);
-            if(e.KeyCode == Keys.Down)
+            switch (e.KeyCode)
             {
-                y += 1;
+                case Keys.Up:
+                    y -= 1;
+                    HandleArrowKeySelection(x, y);
+                    break;
+                case Keys.Right:
+                    x += 1;
+                    HandleArrowKeySelection(x, y);
+                    break;
+                case Keys.Down:
+                    y += 1;
+                    HandleArrowKeySelection(x, y);
+                    break;
+                case Keys.Left:
+                    x -= 1;
+                    HandleArrowKeySelection(x, y);
+                    break;
             }
-            if(e.KeyCode == Keys.Right)
+        }
+
+        private void HandleArrowKeySelection(int x, int y)
+        {
+            if(spreadsheetPanel1.SetSelection(x, y))
             {
-                x += 1;
+                CellSelectedEvent?.Invoke(CellNameFromCoords(x + 1, y + 1));
             }
-            if(e.KeyCode == Keys.Left)
-            {
-                x -= 1;
-            }
-            if (e.KeyCode == Keys.Up)
-            {
-                y -= 1;
-            }
-            spreadsheetPanel1.SetSelection(x, y);
-            //CellSelectedEvent?.Invoke(CellNameFromCoords(x+1,y+1));
         }
     }
 }

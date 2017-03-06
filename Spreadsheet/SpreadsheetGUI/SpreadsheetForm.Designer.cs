@@ -107,11 +107,11 @@
             // cellValueTextBox
             // 
             this.cellValueTextBox.Anchor = System.Windows.Forms.AnchorStyles.Right;
-            this.cellValueTextBox.Location = new System.Drawing.Point(267, 36);
+            this.cellValueTextBox.Location = new System.Drawing.Point(251, 36);
             this.cellValueTextBox.Margin = new System.Windows.Forms.Padding(2);
             this.cellValueTextBox.Name = "cellValueTextBox";
             this.cellValueTextBox.ReadOnly = true;
-            this.cellValueTextBox.Size = new System.Drawing.Size(138, 20);
+            this.cellValueTextBox.Size = new System.Drawing.Size(154, 20);
             this.cellValueTextBox.TabIndex = 0;
             this.cellValueTextBox.TabStop = false;
             // 
@@ -119,7 +119,7 @@
             // 
             this.cellValueLabel.Anchor = System.Windows.Forms.AnchorStyles.Right;
             this.cellValueLabel.AutoSize = true;
-            this.cellValueLabel.Location = new System.Drawing.Point(209, 39);
+            this.cellValueLabel.Location = new System.Drawing.Point(192, 39);
             this.cellValueLabel.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.cellValueLabel.Name = "cellValueLabel";
             this.cellValueLabel.Size = new System.Drawing.Size(54, 13);
@@ -129,11 +129,11 @@
             // cellNameTextBox
             // 
             this.cellNameTextBox.Anchor = System.Windows.Forms.AnchorStyles.Right;
-            this.cellNameTextBox.Location = new System.Drawing.Point(267, 17);
+            this.cellNameTextBox.Location = new System.Drawing.Point(251, 17);
             this.cellNameTextBox.Margin = new System.Windows.Forms.Padding(2);
             this.cellNameTextBox.Name = "cellNameTextBox";
             this.cellNameTextBox.ReadOnly = true;
-            this.cellNameTextBox.Size = new System.Drawing.Size(138, 20);
+            this.cellNameTextBox.Size = new System.Drawing.Size(154, 20);
             this.cellNameTextBox.TabIndex = 2;
             this.cellNameTextBox.TabStop = false;
             // 
@@ -141,7 +141,7 @@
             // 
             this.cellNameLabel.Anchor = System.Windows.Forms.AnchorStyles.Right;
             this.cellNameLabel.AutoSize = true;
-            this.cellNameLabel.Location = new System.Drawing.Point(209, 20);
+            this.cellNameLabel.Location = new System.Drawing.Point(192, 20);
             this.cellNameLabel.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.cellNameLabel.Name = "cellNameLabel";
             this.cellNameLabel.Size = new System.Drawing.Size(55, 13);
@@ -175,7 +175,7 @@
             this.cellContentsTextBox.Margin = new System.Windows.Forms.Padding(2);
             this.cellContentsTextBox.Multiline = true;
             this.cellContentsTextBox.Name = "cellContentsTextBox";
-            this.cellContentsTextBox.Size = new System.Drawing.Size(201, 45);
+            this.cellContentsTextBox.Size = new System.Drawing.Size(184, 45);
             this.cellContentsTextBox.TabIndex = 0;
             this.cellContentsTextBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.cellContentsTextBox_KeyDown);
             // 
@@ -189,6 +189,7 @@
             this.spreadsheetPanel1.Name = "spreadsheetPanel1";
             this.spreadsheetPanel1.Size = new System.Drawing.Size(416, 268);
             this.spreadsheetPanel1.TabIndex = 1;
+            this.spreadsheetPanel1.KeyDown += new System.Windows.Forms.KeyEventHandler(this.spreadsheet_KeyDown);
             // 
             // SpreadsheetForm
             // 
@@ -198,13 +199,13 @@
             this.Controls.Add(this.cellDetailsEditGroupBox);
             this.Controls.Add(this.spreadsheetPanel1);
             this.Controls.Add(this.menuStrip1);
+            this.KeyPreview = true;
             this.MainMenuStrip = this.menuStrip1;
             this.Margin = new System.Windows.Forms.Padding(2);
             this.MinimumSize = new System.Drawing.Size(438, 396);
             this.Name = "SpreadsheetForm";
             this.Text = "Spreadsheet";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.SpreadsheetForm_FormClosing);
-            this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.spreadsheetPanel1_KeyDown);
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
             this.cellDetailsEditGroupBox.ResumeLayout(false);

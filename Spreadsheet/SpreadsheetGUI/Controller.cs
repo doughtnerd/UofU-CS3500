@@ -1,11 +1,7 @@
 ﻿using Formulas;
 using SS;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace SpreadsheetGUI
@@ -16,10 +12,19 @@ namespace SpreadsheetGUI
         Spreadsheet ss;
         FileInfo spreadsheetFile;
 
+        /// <summary>
+        /// Creates a new controller that is used to listen to the given view.
+        /// </summary>
+        /// <param name="view"></param>
         public Controller(ISpreadsheetView view):this(view, new Spreadsheet())
         {
         }
 
+        /// <summary>
+        /// Creates a controller object that uses the specified view and sheet.
+        /// </summary>
+        /// <param name="view"></param>
+        /// <param name="sheet"></param>
         public Controller(ISpreadsheetView view, Spreadsheet sheet)
         {
             this.view = view;
@@ -31,7 +36,10 @@ namespace SpreadsheetGUI
             view.CellContentsChanged += HandleCellContentsChanged;
         }
 
-        public void HandleCellContentsChanged(string cellName, string contents)
+        /// <summary>
+        /// TODO: Really inefficient and clunky. Works but needs fixing.
+        /// </summary>
+        void HandleCellContentsChanged(string cellName, string contents)
         {
             try
             {
@@ -40,42 +48,61 @@ namespace SpreadsheetGUI
                 object cont = ss.GetCellContents(cellName);
                 view.SetCellValueText(val.ToString());
                 view.SetCellContentsText(cont is Formula ? "=" + cont.ToString() : cont.ToString());
+                view.SetCellValue(cellName, val.ToString());
                 foreach (string s in ss.GetNamesOfAllNonemptyCells())
                 {
-                    string cellValue = ss.GetCellValue(s).ToString();
-                    view.SetCellValue(s, cellValue);
+                    object cellVal = ss.GetCellValue(s);
+                    if(cellVal is FormulaError)
+                    {
+                        view.SetCellValue(s, ((FormulaError)cellVal).Reason);
+                    } else
+                    {
+                        view.SetCellValue(s, cellVal.ToString());
+                    }
                 }
             }
-            catch (CircularException)
+            catch (Exception e)
             {
-                MessageBox.Show("A circular dependency has been detected.");
+                if(e is CircularException)
+                {
+                    MessageBox.Show("A circular dependency has been detected.", "Error Detected", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                } else
+                {
+                    MessageBox.Show(e.Message, "Error detected", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
             }
         }
 
-        public void HandleCellSelectedEvent(string name)
+        void HandleCellSelectedEvent(string name)
         {
             object cont = ss.GetCellContents(name);
             object val = ss.GetCellValue(name);
-            view.SetCellContentsText(cont is Formula ? "="+cont.ToString():cont.ToString());
+            view.SetCellContentsText(cont is Formula ? "=" + cont.ToString() : cont.ToString());
             view.SetCellNameText(name);
             view.SetCellValueText(val.ToString());
         }
 
-        public void HandleOpenEvent(FileInfo file)
+        void HandleOpenEvent(FileInfo file)
         {
-            StreamReader read = new StreamReader(file.FullName);
-            Spreadsheet sheet = new Spreadsheet(read, ss.IsValid);
-            Controller c;
-            SpreadsheetGUIApplicationContext.GetContext().RunNew(sheet, out c);
-            foreach(string s in sheet.GetNamesOfAllNonemptyCells())
+            try
             {
-                c.view.SetCellValue(s, sheet.GetCellValue(s).ToString());
+                StreamReader read = new StreamReader(file.FullName);
+                Spreadsheet sheet = new Spreadsheet(read, ss.IsValid);
+                Controller c;
+                SpreadsheetGUIApplicationContext.GetContext().RunNew(sheet, out c);
+                foreach(string s in sheet.GetNamesOfAllNonemptyCells())
+                {
+                    c.view.SetCellValue(s, sheet.GetCellValue(s).ToString());
+                }
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message, "Error Encountered", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
-        public void HandleSaveEvent(FileInfo file)
+        void HandleSaveEvent(FileInfo file)
         {
-            // If-else statement might be unnecessary since the FileSaveDialog handles checking for overwriting.
             if (spreadsheetFile == null)
             {
                 spreadsheetFile = file;
@@ -91,15 +118,21 @@ namespace SpreadsheetGUI
                     spreadsheetFile = file;
                 }
             }
-            StreamWriter writer = new StreamWriter(file.FullName);
-            ss.Save(writer);
+            try
+            {
+                StreamWriter writer = new StreamWriter(file.FullName);
+                ss.Save(writer);
+            } catch(Exception e)
+            {
+                MessageBox.Show(e.Message, "Error Encountered", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
-        public void HandleCloseEvent(FormClosingEventArgs args)
+        void HandleCloseEvent(FormClosingEventArgs args)
         {
             if (ss.Changed == true)
             {
-                DialogResult r = MessageBox.Show("The spreadsheet has been changed. Closing now will result in the loss of data. Do you still wish to exit?", "Spreadsheet Closing", MessageBoxButtons.YesNo);
+                DialogResult r = MessageBox.Show("The spreadsheet has been changed. Closing now will result in the loss of data. Do you still wish to exit?", "Spreadsheet Closing", MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation);
                 if (r == DialogResult.No)
                 {
                     args.Cancel = true;
