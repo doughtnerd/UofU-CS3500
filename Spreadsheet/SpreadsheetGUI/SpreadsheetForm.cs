@@ -7,40 +7,44 @@ namespace SpreadsheetGUI
 {
     public partial class SpreadsheetForm : Form, ISpreadsheetView
     {
+        /// <summary>
+        /// Creates a new SpreadsheetForm.
+        /// </summary>
         public SpreadsheetForm()
         {
             InitializeComponent();
             spreadsheetPanel1.SelectionChanged += HandleSelectionChange;
-
         }
 
+        /// <summary>
+        /// Notifies subscribers that a close event has been fired and passes the event args.
+        /// </summary>
         public event Action<FormClosingEventArgs> CloseEvent;
+
+        /// <summary>
+        /// Notifies subscribers of an open event and passes the selected file to open.
+        /// </summary>
         public event Action<FileInfo> OpenEvent;
+
+        /// <summary>
+        /// Notifies subscribers a save event has been fired and passes the selected save file.
+        /// </summary>
         public event Action<FileInfo> SaveEvent;
+
+        /// <summary>
+        /// Notifies subscribers that a cell has been selected and passes the name of the selected cell.
+        /// </summary>
         public event Action<string> CellSelectedEvent;
+
+        /// <summary>
+        /// Notifies subscribers that a cell's contents has been changed and passes the cell name and the contents entered.
+        /// </summary>
         public event Action<string, string> CellContentsChanged;
 
         /// <summary>
-        /// TODO:Remove, currently unused.
+        /// Notifies subscribers that a help menu item has been selected and passes the index of the menu item selected.
         /// </summary>
-        /// <param name="name"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public bool GetCellValue(string name, out string value)
-        {
-            int x;
-            int y;
-            CellNameToCoords(name, out x, out y);
-            if (x == 0 || y == 0)
-            {
-                value = "";
-                return false;
-            } else
-            {
-                spreadsheetPanel1.GetValue(x, y, out value);
-                return true;
-            }
-        }
+        public event Action<int> HelpEvent;
 
         /// <summary>
         /// Sets the named cell to the given value.
@@ -52,7 +56,7 @@ namespace SpreadsheetGUI
         {
             int x;
             int y;
-            CellNameToCoords(name, out x, out y);
+            SpreadsheetUtils.CellNameToCoords(name, out x, out y);
             if(x==0 || y == 0)
             {
                 return false;
@@ -133,44 +137,8 @@ namespace SpreadsheetGUI
             int x;
             int y;
             panel.GetSelection(out x, out y);
-            string selectedCellName = CellNameFromCoords(x + 1, y + 1);
+            string selectedCellName = SpreadsheetUtils.CellNameFromCoords(x + 1, y + 1);
             CellSelectedEvent?.Invoke(selectedCellName);
-        }
-
-        private static void CellNameToCoords(string name, out int x, out int y)
-        {
-            x = 0;
-            y = 0;
-            name = name.ToUpper();
-            for(int i = 0; i < name.Length; i++)
-            {
-                if (char.IsLetter(name[i]))
-                {
-                    x += (int)name[i] - 64;
-                } else
-                {
-                    y = int.Parse(name.Substring(i, name.Length - 1));
-                }
-            }
-        }
-
-        /// <summary>
-        /// Returns a spreadsheet cell name based off of the x and y values passed.
-        /// </summary>
-        private static string CellNameFromCoords(int x, int y)
-        {
-            int dividend = x;
-            string columnName = String.Empty;
-            int modulo;
-
-            while (dividend > 0)
-            {
-                modulo = (dividend - 1) % 26;
-                columnName = Convert.ToChar(65 + modulo).ToString() + columnName;
-                dividend = (int)((dividend - modulo) / 26);
-            }
-
-            return columnName +y;
         }
 
         private void cellContentsTextBox_KeyDown(object sender, KeyEventArgs e)
@@ -192,7 +160,7 @@ namespace SpreadsheetGUI
             if (e.KeyCode == Keys.Enter)
             {
                 e.SuppressKeyPress = true;
-                string selectedCellName = CellNameFromCoords(x + 1, y + 1);
+                string selectedCellName = SpreadsheetUtils.CellNameFromCoords(x + 1, y + 1);
                 TextBox textBox = sender as TextBox;
                 if (textBox != null)
                 {
@@ -207,24 +175,27 @@ namespace SpreadsheetGUI
             int x;
             int y;
             spreadsheetPanel1.GetSelection(out x, out y);
-            switch (e.KeyCode)
+            if (!e.Control && !e.Shift && !e.Alt)
             {
-                case Keys.Up:
-                    y -= 1;
-                    HandleArrowKeySelection(x, y);
-                    break;
-                case Keys.Right:
-                    x += 1;
-                    HandleArrowKeySelection(x, y);
-                    break;
-                case Keys.Down:
-                    y += 1;
-                    HandleArrowKeySelection(x, y);
-                    break;
-                case Keys.Left:
-                    x -= 1;
-                    HandleArrowKeySelection(x, y);
-                    break;
+                switch (e.KeyCode)
+                {
+                    case Keys.Up:
+                        y -= 1;
+                        HandleArrowKeySelection(x, y);
+                        break;
+                    case Keys.Right:
+                        x += 1;
+                        HandleArrowKeySelection(x, y);
+                        break;
+                    case Keys.Down:
+                        y += 1;
+                        HandleArrowKeySelection(x, y);
+                        break;
+                    case Keys.Left:
+                        x -= 1;
+                        HandleArrowKeySelection(x, y);
+                        break;
+                }
             }
         }
 
@@ -232,7 +203,27 @@ namespace SpreadsheetGUI
         {
             if(spreadsheetPanel1.SetSelection(x, y))
             {
-                CellSelectedEvent?.Invoke(CellNameFromCoords(x + 1, y + 1));
+                CellSelectedEvent?.Invoke(SpreadsheetUtils.CellNameFromCoords(x + 1, y + 1));
+            }
+        }
+
+        private void navigatingCellsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            HandleHelpMenuClick(sender);
+        }
+
+        private void editingCellsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            HandleHelpMenuClick(sender);
+        }
+
+        private void HandleHelpMenuClick(object sender)
+        {
+            ToolStripMenuItem item = sender as ToolStripMenuItem;
+            if (item != null)
+            {
+                int index = (item.OwnerItem as ToolStripMenuItem).DropDownItems.IndexOf(item);
+                HelpEvent?.Invoke(index);
             }
         }
     }

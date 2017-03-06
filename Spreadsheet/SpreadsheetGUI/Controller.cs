@@ -8,8 +8,20 @@ namespace SpreadsheetGUI
 {
     class Controller
     {
+        /// <summary>
+        /// The view this controller is currently managing and has hooked event handlers with.
+        /// </summary>
         ISpreadsheetView view;
+
+        /// <summary>
+        /// The current data backing the view.
+        /// </summary>
         Spreadsheet ss;
+
+        /// <summary>
+        /// TODO: Might not need given the FileSaveDialog handles file overwriting.
+        /// File the Spreadsheet data was last saved to. May not need.
+        /// </summary>
         FileInfo spreadsheetFile;
 
         /// <summary>
@@ -34,11 +46,23 @@ namespace SpreadsheetGUI
             view.OpenEvent += HandleOpenEvent;
             view.CellSelectedEvent += HandleCellSelectedEvent;
             view.CellContentsChanged += HandleCellContentsChanged;
+            view.HelpEvent += HandleHelpEvent;
         }
 
-        /// <summary>
-        /// TODO: Really inefficient and clunky. Works but needs fixing.
-        /// </summary>
+        void HandleHelpEvent(int index)
+        {
+            switch (index)
+            {
+                case 0:
+                    MessageBox.Show("To navigate cells either:\r\nA) Left-click on the desired cell.\r\nB) While editing in the content edit box, use the arrow keys.");
+                    break;
+                case 1:
+                    MessageBox.Show("To edit cell contents click in the text-box on the Cell Details panel and enter the desired contents. When finished press enter to finalize changes.");
+                    break;
+            }
+        }
+
+        // TODO: Really inefficient and clunky. Works but needs fixing.
         void HandleCellContentsChanged(string cellName, string contents)
         {
             try
@@ -101,6 +125,7 @@ namespace SpreadsheetGUI
             }
         }
 
+        //TODO: May not need to check spreadSheetFile since the FileSaveDialog handles file overwriting.
         void HandleSaveEvent(FileInfo file)
         {
             if (spreadsheetFile == null)
@@ -110,7 +135,7 @@ namespace SpreadsheetGUI
             {
                 if (file.Exists && !file.FullName.Equals(spreadsheetFile.FullName))
                 {
-                    DialogResult r = MessageBox.Show("File " + file.Name + " already exists. Would you like to overwrite?", "Spreadsheet Saving", MessageBoxButtons.YesNo);
+                    DialogResult r = MessageBox.Show("File " + file.Name + " is not the file that this spreadsheet was most recently saved to. Would you like to overwrite?", "Spreadsheet Saving", MessageBoxButtons.YesNo);
                     if (r == DialogResult.No)
                     {
                         return;
