@@ -18,8 +18,8 @@ namespace SpreadsheetGUI
         /// </summary>
         Spreadsheet ss;
 
+        // TODO: Might not need given the FileSaveDialog handles file overwriting.
         /// <summary>
-        /// TODO: Might not need given the FileSaveDialog handles file overwriting.
         /// File the Spreadsheet data was last saved to. May not need.
         /// </summary>
         FileInfo spreadsheetFile;
@@ -49,6 +49,10 @@ namespace SpreadsheetGUI
             view.HelpEvent += HandleHelpEvent;
         }
 
+        /// <summary>
+        /// Help was reqeusted.
+        /// </summary>
+        /// <param name="index"></param>
         void HandleHelpEvent(int index)
         {
             switch (index)
@@ -63,6 +67,11 @@ namespace SpreadsheetGUI
         }
 
         // TODO: Really inefficient and clunky. Works but needs fixing.
+        /// <summary>
+        /// Contents of a cell in spreadsheet has be changed.
+        /// </summary>
+        /// <param name="cellName"></param>
+        /// <param name="contents"></param>
         void HandleCellContentsChanged(string cellName, string contents)
         {
             try
@@ -97,6 +106,10 @@ namespace SpreadsheetGUI
             }
         }
 
+        /// <summary>
+        /// Cell in spreadsheet has been selected.
+        /// </summary>
+        /// <param name="name"></param>
         void HandleCellSelectedEvent(string name)
         {
             object cont = ss.GetCellContents(name);
@@ -105,7 +118,11 @@ namespace SpreadsheetGUI
             view.SetCellNameText(name);
             view.SetCellValueText(val.ToString());
         }
-
+        
+        /// <summary>
+        /// Spreadsheet is being opened.
+        /// </summary>
+        /// <param name="file"></param>
         void HandleOpenEvent(FileInfo file)
         {
             try
@@ -125,7 +142,12 @@ namespace SpreadsheetGUI
             }
         }
 
-        //TODO: May not need to check spreadSheetFile since the FileSaveDialog handles file overwriting.
+        // TODO: May not need to check spreadSheetFile since the FileSaveDialog handles file overwriting.
+        // NOTE: FileSaveDialog warns about overwriting even if the spreadsheet is being saved to the most recent save file.
+        /// <summary>
+        /// Spreadsheet is being saved.
+        /// </summary>
+        /// <param name="file"></param>
         void HandleSaveEvent(FileInfo file)
         {
             if (spreadsheetFile == null)
@@ -153,6 +175,10 @@ namespace SpreadsheetGUI
             }
         }
 
+        /// <summary>
+        /// Spreadsheet is being closed.
+        /// </summary>
+        /// <param name="args"></param>
         void HandleCloseEvent(FormClosingEventArgs args)
         {
             if (ss.Changed == true)

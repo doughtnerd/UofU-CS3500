@@ -92,17 +92,36 @@ namespace SpreadsheetGUI
             this.cellNameTextBox.Text = s;
         }
 
+        /*
+         * NOTE: I was thinking about renaming some of the methods to have more
+         * consistent naming accross the class. I can do this once you've fixed 
+         * the summaries of the methods. I will be working on this too but we 
+         * also need to make it so no overwrite warning is displayed if the user
+         * is attempting to save to the spreadsheet's most recent save file.
+         */
 
+        /// <summary>
+        /// New in the file menu was clicked.
+        /// Creates a new spreadsheet in a new window.
+        /// </summary>
         private void newToolStripMenuItem_Click(object sender, EventArgs e)
         {
             SpreadsheetGUIApplicationContext.GetContext().RunNew();
         }
 
+        /// <summary>
+        /// Exit in the file menu was clicked.
+        /// Closes the current spreadsheet window.
+        /// </summary>
         private void exitToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Close();
         }
 
+        /// <summary>
+        /// Open in the file menu was clicked.
+        /// Creates a window allowing the user to search for a spreadsheet file to open.
+        /// </summary>
         private void openToolStripMenuItem_Click(object sender, EventArgs e)
         {
             OpenFileDialog dialog = new OpenFileDialog();
@@ -115,6 +134,9 @@ namespace SpreadsheetGUI
             }
         }
 
+        /// <summary>
+        /// Save in the file menu was clicked.
+        /// </summary>
         private void saveToolStripMenuItem_Click(object sender, EventArgs e)
         {
             SaveFileDialog dialog = new SaveFileDialog();
@@ -127,11 +149,17 @@ namespace SpreadsheetGUI
             }
         }
 
+        /// <summary>
+        /// Current spreadsheet window is closing.
+        /// </summary>
         private void SpreadsheetForm_FormClosing(object sender, FormClosingEventArgs e)
         {
             CloseEvent?.Invoke(e);
         }
 
+        /// <summary>
+        /// Selected cell was changed.
+        /// </summary>
         private void HandleSelectionChange(SpreadsheetPanel panel)
         {
             int x;
@@ -141,17 +169,29 @@ namespace SpreadsheetGUI
             CellSelectedEvent?.Invoke(selectedCellName);
         }
 
+        // TODO: I am unsure what this is for.
+        /// <summary>
+        /// Key pressed with cell contents selected.
+        /// </summary>
         private void cellContentsTextBox_KeyDown(object sender, KeyEventArgs e)
         {
             HandleContentKeyPress(sender, e);
             HandleArrowKeyPress(sender, e);
         }
 
+        // TODO: I am unsure what this is for.
+        /// <summary>
+        /// Key pressed with spreadsheet selected.
+        /// </summary>
         private void spreadsheet_KeyDown(object sender, KeyEventArgs e)
         {
             HandleArrowKeyPress(sender, e);
         }
 
+        // TODO: I am unsure what this is for.
+        /// <summary>
+        /// Key pressed while in cell contents.
+        /// </summary>
         private void HandleContentKeyPress(object sender, KeyEventArgs e)
         {
             int x;
@@ -170,6 +210,10 @@ namespace SpreadsheetGUI
             }
         }
 
+        // TODO: I am unsure what this is for.
+        /// <summary>
+        /// Arrow key was pressed.
+        /// </summary>
         private void HandleArrowKeyPress(object sender, KeyEventArgs e)
         {
             int x;
@@ -199,6 +243,10 @@ namespace SpreadsheetGUI
             }
         }
 
+        // TODO: I am unsure what this is for.
+        /// <summary>
+        /// New cell selection by arrow key.
+        /// </summary>
         private void HandleArrowKeySelection(int x, int y)
         {
             if(spreadsheetPanel1.SetSelection(x, y))
@@ -207,16 +255,25 @@ namespace SpreadsheetGUI
             }
         }
 
+        /// <summary>
+        /// Navigating cells in help menu was clicked.
+        /// </summary>
         private void navigatingCellsToolStripMenuItem_Click(object sender, EventArgs e)
         {
             HandleHelpMenuClick(sender);
         }
 
+        /// <summary>
+        /// Editing cells in help menu was clicked.
+        /// </summary>
         private void editingCellsToolStripMenuItem_Click(object sender, EventArgs e)
         {
             HandleHelpMenuClick(sender);
         }
 
+        /// <summary>
+        /// Help menu item was clicked.
+        /// </summary>
         private void HandleHelpMenuClick(object sender)
         {
             ToolStripMenuItem item = sender as ToolStripMenuItem;

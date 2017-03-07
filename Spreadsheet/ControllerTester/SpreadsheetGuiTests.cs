@@ -3,7 +3,6 @@ using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SpreadsheetGUI;
 using System.Windows.Forms;
-using SSGui;
 
 namespace ControllerTester
 {
@@ -46,7 +45,7 @@ namespace ControllerTester
     }
 
     [TestClass]
-    public class UnitTest1
+    public class SpreadsheetGuiTests
     {
         #region SpreadsheetUtils Tests
 
