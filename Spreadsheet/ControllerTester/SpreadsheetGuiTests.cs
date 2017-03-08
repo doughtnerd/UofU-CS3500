@@ -105,6 +105,17 @@ namespace ControllerTester
         }
 
         [TestMethod]
+        public void DoubleLetterCellNameToCoords4()
+        {
+            string cellName = "ab26";
+            int x;
+            int y;
+            SpreadsheetUtils.CellNameToCoords(cellName, out x, out y);
+            Assert.AreEqual(28, x);
+            Assert.AreEqual(26, y);
+        }
+
+        [TestMethod]
         public void SimpleCellNameFromCoords()
         {
             int x = 1;

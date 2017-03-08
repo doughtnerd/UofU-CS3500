@@ -193,7 +193,6 @@
             this.spreadsheetPanel1.Name = "spreadsheetPanel1";
             this.spreadsheetPanel1.Size = new System.Drawing.Size(832, 515);
             this.spreadsheetPanel1.TabIndex = 1;
-            this.spreadsheetPanel1.KeyDown += new System.Windows.Forms.KeyEventHandler(this.spreadsheet_KeyDown);
             // 
             // navigatingCellsToolStripMenuItem
             // 

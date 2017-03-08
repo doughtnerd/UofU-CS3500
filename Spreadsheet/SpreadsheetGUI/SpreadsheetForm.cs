@@ -142,6 +142,7 @@ namespace SpreadsheetGUI
             SaveFileDialog dialog = new SaveFileDialog();
             dialog.Filter = "Spreadsheet Files|*.ss|All Files|*.*";
             dialog.Title = "Save Spreadsheet to File";
+            dialog.OverwritePrompt = false;
 
             if (dialog.ShowDialog() == DialogResult.OK)
             {
@@ -169,58 +170,64 @@ namespace SpreadsheetGUI
             CellSelectedEvent?.Invoke(selectedCellName);
         }
 
-        // TODO: I am unsure what this is for.
+        // TODO Read updated comment
         /// <summary>
-        /// Key pressed with cell contents selected.
+        /// Event that's fired when a user presses a key while focus is on the cell contents edit textbox.
+        /// It's what allows the user to press enter in order to change a cell and use the arrow keys to navigate.
         /// </summary>
         private void cellContentsTextBox_KeyDown(object sender, KeyEventArgs e)
         {
-            HandleContentKeyPress(sender, e);
+            HandleEnterKeyPress(sender, e);
             HandleArrowKeyPress(sender, e);
         }
 
-        // TODO: I am unsure what this is for.
+        //TODO:Read updated comment
         /// <summary>
-        /// Key pressed with spreadsheet selected.
+        /// Handles a key press event for the enter key when a key press event is detected in the cell contents edit box.
         /// </summary>
-        private void spreadsheet_KeyDown(object sender, KeyEventArgs e)
+        /// <param name="sender">The element that was listening for the event.</param>
+        /// <param name="e">The key events for the detected key</param>
+        private void HandleEnterKeyPress(object sender, KeyEventArgs e)
         {
-            HandleArrowKeyPress(sender, e);
-        }
-
-        // TODO: I am unsure what this is for.
-        /// <summary>
-        /// Key pressed while in cell contents.
-        /// </summary>
-        private void HandleContentKeyPress(object sender, KeyEventArgs e)
-        {
-            int x;
-            int y;
-            spreadsheetPanel1.GetSelection(out x, out y);
+            //Checks that the enter key was the key pressed in the event.
             if (e.KeyCode == Keys.Enter)
             {
+                int x;
+                int y;
+                
+                //This gets the selected cell coordinates out of the view.
+                spreadsheetPanel1.GetSelection(out x, out y);
+
+                //Disables the enter key being used as a carriage return within the text box.
                 e.SuppressKeyPress = true;
+
+                //Turns the above coords into a usable cell name.
                 string selectedCellName = SpreadsheetUtils.CellNameFromCoords(x + 1, y + 1);
+
+                //Since the cell contents edit box is the 'sender' of the event, we want the text inside of it.
                 TextBox textBox = sender as TextBox;
                 if (textBox != null)
                 {
-                    string theText = textBox.Text;
-                    CellContentsChanged?.Invoke(selectedCellName, theText);
+                    string contents = textBox.Text;
+
+                    //Fire the CellContentsChanged event with the cell name and new contents.
+                    //As long as the controller has an event hooked into the event, it will handle the rest.
+                    CellContentsChanged?.Invoke(selectedCellName, contents);
                 }
             }
         }
 
-        // TODO: I am unsure what this is for.
+        //TODO:Read updated comment
         /// <summary>
-        /// Arrow key was pressed.
+        /// Enables using the arrow keys to navigate cells.
         /// </summary>
         private void HandleArrowKeyPress(object sender, KeyEventArgs e)
         {
-            int x;
-            int y;
-            spreadsheetPanel1.GetSelection(out x, out y);
             if (!e.Control && !e.Shift && !e.Alt)
             {
+                int x;
+                int y;
+                spreadsheetPanel1.GetSelection(out x, out y);
                 switch (e.KeyCode)
                 {
                     case Keys.Up:
@@ -243,9 +250,10 @@ namespace SpreadsheetGUI
             }
         }
 
-        // TODO: I am unsure what this is for.
+        //TODO:Read updated comment
         /// <summary>
-        /// New cell selection by arrow key.
+        /// Called by the HandleArrowKeyPress method and handles ensuring that the x & y values are valid for the view and if so, fires the cell selected event.
+        /// As long as the controller has a handler hooked to the event it will be notified that it needs to update the contents box, the cell name box, and the cell value box.
         /// </summary>
         private void HandleArrowKeySelection(int x, int y)
         {

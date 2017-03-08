@@ -18,7 +18,6 @@ namespace SpreadsheetGUI
         /// </summary>
         Spreadsheet ss;
 
-        // TODO: Might not need given the FileSaveDialog handles file overwriting.
         /// <summary>
         /// File the Spreadsheet data was last saved to. May not need.
         /// </summary>
@@ -142,8 +141,7 @@ namespace SpreadsheetGUI
             }
         }
 
-        // TODO: May not need to check spreadSheetFile since the FileSaveDialog handles file overwriting.
-        // NOTE: FileSaveDialog warns about overwriting even if the spreadsheet is being saved to the most recent save file.
+        // TODO: FileSaveDialog now doesn't handle an overwrite event. Instead, it is now handled here.
         /// <summary>
         /// Spreadsheet is being saved.
         /// </summary>
@@ -157,7 +155,7 @@ namespace SpreadsheetGUI
             {
                 if (file.Exists && !file.FullName.Equals(spreadsheetFile.FullName))
                 {
-                    DialogResult r = MessageBox.Show("File " + file.Name + " is not the file that this spreadsheet was most recently saved to. Would you like to overwrite?", "Spreadsheet Saving", MessageBoxButtons.YesNo);
+                    DialogResult r = MessageBox.Show("File " + file.Name + " is not the file that this spreadsheet was most recently saved to. Would you like to overwrite?", "Spreadsheet Saving", MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation);
                     if (r == DialogResult.No)
                     {
                         return;

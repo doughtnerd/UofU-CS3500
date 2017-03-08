@@ -19,10 +19,16 @@ namespace SpreadsheetGUI
             int i = 0;
             while (char.IsLetter(name[i]))
             {
-                x += i==0 ? ((int)name[i] - 64) : ((int)name[i] - 64) * (26*i);
+                int charVal = GetCharIndexValue(name[i]);
+                x = i==0 ? charVal : charVal + (26 * GetCharIndexValue(name[i-1]));
                 i++;
             }
             y = int.Parse(name.Substring(i, name.Length - i));
+        }
+
+        private static int GetCharIndexValue(char c)
+        {
+            return ((int)c) - 64;
         }
 
         /// <summary>
