@@ -211,6 +211,7 @@ namespace SS
                             }
                         }
                     }
+                    IsValid = newIsValid;
                 }
             }
             Changed = false;

@@ -6,7 +6,7 @@ using System.Windows.Forms;
 
 namespace SpreadsheetGUI
 {
-    class Controller
+    public class Controller
     {
         /// <summary>
         /// The view this controller is currently managing and has hooked event handlers with.
