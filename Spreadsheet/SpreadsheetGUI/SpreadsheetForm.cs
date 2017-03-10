@@ -39,7 +39,7 @@ namespace SpreadsheetGUI
         /// <summary>
         /// Notifies subscribers that a cell's contents has been changed and passes the cell name and the contents entered.
         /// </summary>
-        public event Action<string, string> CellContentsChanged;
+        public event Action<string, string> CellContentsChangedEvent;
 
         /// <summary>
         /// Notifies subscribers that a help menu item has been selected and passes the index of the menu item selected.
@@ -170,7 +170,6 @@ namespace SpreadsheetGUI
             CellSelectedEvent?.Invoke(selectedCellName);
         }
 
-        // TODO Read updated comment
         /// <summary>
         /// Event that's fired when a user presses a key while focus is on the cell contents edit textbox.
         /// It's what allows the user to press enter in order to change a cell and use the arrow keys to navigate.
@@ -181,7 +180,6 @@ namespace SpreadsheetGUI
             HandleArrowKeyPress(sender, e);
         }
 
-        //TODO:Read updated comment
         /// <summary>
         /// Handles a key press event for the enter key when a key press event is detected in the cell contents edit box.
         /// </summary>
@@ -212,12 +210,11 @@ namespace SpreadsheetGUI
 
                     //Fire the CellContentsChanged event with the cell name and new contents.
                     //As long as the controller has an event hooked into the event, it will handle the rest.
-                    CellContentsChanged?.Invoke(selectedCellName, contents);
+                    CellContentsChangedEvent?.Invoke(selectedCellName, contents);
                 }
             }
         }
 
-        //TODO:Read updated comment
         /// <summary>
         /// Enables using the arrow keys to navigate cells.
         /// </summary>
@@ -250,7 +247,6 @@ namespace SpreadsheetGUI
             }
         }
 
-        //TODO:Read updated comment
         /// <summary>
         /// Called by the HandleArrowKeyPress method and handles ensuring that the x & y values are valid for the view and if so, fires the cell selected event.
         /// As long as the controller has a handler hooked to the event it will be notified that it needs to update the contents box, the cell name box, and the cell value box.

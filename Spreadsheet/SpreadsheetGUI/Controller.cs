@@ -44,8 +44,9 @@ namespace SpreadsheetGUI
             view.SaveEvent += HandleSaveEvent;
             view.OpenEvent += HandleOpenEvent;
             view.CellSelectedEvent += HandleCellSelectedEvent;
-            view.CellContentsChanged += HandleCellContentsChanged;
+            view.CellContentsChangedEvent += HandleCellContentsChanged;
             view.HelpEvent += HandleHelpEvent;
+            HandleCellSelectedEvent("A1");
         }
 
         /// <summary>
@@ -141,7 +142,6 @@ namespace SpreadsheetGUI
             }
         }
 
-        // TODO: FileSaveDialog now doesn't handle an overwrite event. Instead, it is now handled here.
         /// <summary>
         /// Spreadsheet is being saved.
         /// </summary>

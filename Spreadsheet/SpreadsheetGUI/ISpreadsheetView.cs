@@ -33,7 +33,7 @@ namespace SpreadsheetGUI
         /// <summary>
         /// Notifies subscribers that a cell's contents has been changed and passes the cell name and the contents entered.
         /// </summary>
-        event Action<string, string> CellContentsChanged;
+        event Action<string, string> CellContentsChangedEvent;
 
         /// <summary>
         /// Notifies subscribers that a help menu item has been selected and passes the index of the menu item selected.
