@@ -87,6 +87,7 @@
             this.usernameTextbox.Name = "usernameTextbox";
             this.usernameTextbox.Size = new System.Drawing.Size(100, 20);
             this.usernameTextbox.TabIndex = 0;
+            this.usernameTextbox.TextChanged += new System.EventHandler(this.usernameTextbox_TextChanged);
             // 
             // serverTextBox
             // 
@@ -94,6 +95,7 @@
             this.serverTextBox.Name = "serverTextBox";
             this.serverTextBox.Size = new System.Drawing.Size(100, 20);
             this.serverTextBox.TabIndex = 1;
+            this.serverTextBox.TextChanged += new System.EventHandler(this.serverTextBox_TextChanged);
             // 
             // usernameLabel
             // 
@@ -289,6 +291,7 @@
             this.wordTextBox.Name = "wordTextBox";
             this.wordTextBox.Size = new System.Drawing.Size(100, 20);
             this.wordTextBox.TabIndex = 5;
+            this.wordTextBox.TextChanged += new System.EventHandler(this.wordTextBox_TextChanged);
             // 
             // wordLabel
             // 
@@ -314,6 +317,7 @@
             this.timeTextBox.Name = "timeTextBox";
             this.timeTextBox.Size = new System.Drawing.Size(100, 20);
             this.timeTextBox.TabIndex = 3;
+            this.timeTextBox.TextChanged += new System.EventHandler(this.timeTextBox_TextChanged);
             // 
             // time
             // 

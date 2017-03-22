@@ -46,5 +46,25 @@ namespace BoggleClient
         {
 
         }
+
+        private void usernameTextbox_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void serverTextBox_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void timeTextBox_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void wordTextBox_TextChanged(object sender, EventArgs e)
+        {
+
+        }
     }
 }
