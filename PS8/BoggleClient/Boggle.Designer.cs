@@ -66,6 +66,8 @@
             this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.exitGameToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.closeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.playerEnd = new System.Windows.Forms.ListBox();
+            this.opponentEnd = new System.Windows.Forms.ListBox();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -99,7 +101,7 @@
             this.usernameLabel.Location = new System.Drawing.Point(28, 123);
             this.usernameLabel.Name = "usernameLabel";
             this.usernameLabel.Size = new System.Drawing.Size(55, 13);
-            this.usernameLabel.TabIndex = 17;
+            this.usernameLabel.TabIndex = 120;
             this.usernameLabel.Text = "Username";
             // 
             // serverLabel
@@ -108,7 +110,7 @@
             this.serverLabel.Location = new System.Drawing.Point(45, 149);
             this.serverLabel.Name = "serverLabel";
             this.serverLabel.Size = new System.Drawing.Size(38, 13);
-            this.serverLabel.TabIndex = 16;
+            this.serverLabel.TabIndex = 119;
             this.serverLabel.Text = "Server";
             // 
             // boardLabel1
@@ -118,7 +120,7 @@
             this.boardLabel1.Margin = new System.Windows.Forms.Padding(0);
             this.boardLabel1.Name = "boardLabel1";
             this.boardLabel1.Size = new System.Drawing.Size(25, 25);
-            this.boardLabel1.TabIndex = 15;
+            this.boardLabel1.TabIndex = 118;
             this.boardLabel1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // boardLabel2
@@ -128,7 +130,7 @@
             this.boardLabel2.Margin = new System.Windows.Forms.Padding(0);
             this.boardLabel2.Name = "boardLabel2";
             this.boardLabel2.Size = new System.Drawing.Size(25, 25);
-            this.boardLabel2.TabIndex = 14;
+            this.boardLabel2.TabIndex = 117;
             this.boardLabel2.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // boardLabel3
@@ -138,7 +140,7 @@
             this.boardLabel3.Margin = new System.Windows.Forms.Padding(0);
             this.boardLabel3.Name = "boardLabel3";
             this.boardLabel3.Size = new System.Drawing.Size(25, 25);
-            this.boardLabel3.TabIndex = 13;
+            this.boardLabel3.TabIndex = 116;
             this.boardLabel3.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // boardLabel4
@@ -148,7 +150,7 @@
             this.boardLabel4.Margin = new System.Windows.Forms.Padding(0);
             this.boardLabel4.Name = "boardLabel4";
             this.boardLabel4.Size = new System.Drawing.Size(25, 25);
-            this.boardLabel4.TabIndex = 12;
+            this.boardLabel4.TabIndex = 115;
             this.boardLabel4.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // boardLabel5
@@ -158,7 +160,7 @@
             this.boardLabel5.Margin = new System.Windows.Forms.Padding(0);
             this.boardLabel5.Name = "boardLabel5";
             this.boardLabel5.Size = new System.Drawing.Size(25, 25);
-            this.boardLabel5.TabIndex = 11;
+            this.boardLabel5.TabIndex = 114;
             this.boardLabel5.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // boardLabel6
@@ -168,7 +170,7 @@
             this.boardLabel6.Margin = new System.Windows.Forms.Padding(0);
             this.boardLabel6.Name = "boardLabel6";
             this.boardLabel6.Size = new System.Drawing.Size(25, 25);
-            this.boardLabel6.TabIndex = 10;
+            this.boardLabel6.TabIndex = 113;
             this.boardLabel6.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // boardLabel7
@@ -178,7 +180,7 @@
             this.boardLabel7.Margin = new System.Windows.Forms.Padding(0);
             this.boardLabel7.Name = "boardLabel7";
             this.boardLabel7.Size = new System.Drawing.Size(25, 25);
-            this.boardLabel7.TabIndex = 9;
+            this.boardLabel7.TabIndex = 112;
             this.boardLabel7.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // boardLabel8
@@ -188,7 +190,7 @@
             this.boardLabel8.Margin = new System.Windows.Forms.Padding(0);
             this.boardLabel8.Name = "boardLabel8";
             this.boardLabel8.Size = new System.Drawing.Size(25, 25);
-            this.boardLabel8.TabIndex = 8;
+            this.boardLabel8.TabIndex = 111;
             this.boardLabel8.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // boardLabel9
@@ -198,7 +200,7 @@
             this.boardLabel9.Margin = new System.Windows.Forms.Padding(0);
             this.boardLabel9.Name = "boardLabel9";
             this.boardLabel9.Size = new System.Drawing.Size(25, 25);
-            this.boardLabel9.TabIndex = 7;
+            this.boardLabel9.TabIndex = 110;
             this.boardLabel9.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // boardLabel10
@@ -208,7 +210,7 @@
             this.boardLabel10.Margin = new System.Windows.Forms.Padding(0);
             this.boardLabel10.Name = "boardLabel10";
             this.boardLabel10.Size = new System.Drawing.Size(25, 25);
-            this.boardLabel10.TabIndex = 6;
+            this.boardLabel10.TabIndex = 109;
             this.boardLabel10.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // boardLabel11
@@ -218,7 +220,7 @@
             this.boardLabel11.Margin = new System.Windows.Forms.Padding(0);
             this.boardLabel11.Name = "boardLabel11";
             this.boardLabel11.Size = new System.Drawing.Size(25, 25);
-            this.boardLabel11.TabIndex = 5;
+            this.boardLabel11.TabIndex = 108;
             this.boardLabel11.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // boardLabel12
@@ -228,7 +230,7 @@
             this.boardLabel12.Margin = new System.Windows.Forms.Padding(0);
             this.boardLabel12.Name = "boardLabel12";
             this.boardLabel12.Size = new System.Drawing.Size(25, 25);
-            this.boardLabel12.TabIndex = 4;
+            this.boardLabel12.TabIndex = 107;
             this.boardLabel12.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // boardLabel13
@@ -238,7 +240,7 @@
             this.boardLabel13.Margin = new System.Windows.Forms.Padding(0);
             this.boardLabel13.Name = "boardLabel13";
             this.boardLabel13.Size = new System.Drawing.Size(25, 25);
-            this.boardLabel13.TabIndex = 3;
+            this.boardLabel13.TabIndex = 106;
             this.boardLabel13.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // boardLabel14
@@ -248,7 +250,7 @@
             this.boardLabel14.Margin = new System.Windows.Forms.Padding(0);
             this.boardLabel14.Name = "boardLabel14";
             this.boardLabel14.Size = new System.Drawing.Size(25, 25);
-            this.boardLabel14.TabIndex = 2;
+            this.boardLabel14.TabIndex = 105;
             this.boardLabel14.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // boardLabel15
@@ -258,7 +260,7 @@
             this.boardLabel15.Margin = new System.Windows.Forms.Padding(0);
             this.boardLabel15.Name = "boardLabel15";
             this.boardLabel15.Size = new System.Drawing.Size(25, 25);
-            this.boardLabel15.TabIndex = 1;
+            this.boardLabel15.TabIndex = 104;
             this.boardLabel15.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // boardLabel16
@@ -268,7 +270,7 @@
             this.boardLabel16.Margin = new System.Windows.Forms.Padding(0);
             this.boardLabel16.Name = "boardLabel16";
             this.boardLabel16.Size = new System.Drawing.Size(25, 25);
-            this.boardLabel16.TabIndex = 0;
+            this.boardLabel16.TabIndex = 103;
             this.boardLabel16.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // word
@@ -276,16 +278,17 @@
             this.word.Location = new System.Drawing.Point(290, 241);
             this.word.Name = "word";
             this.word.Size = new System.Drawing.Size(75, 23);
-            this.word.TabIndex = 18;
+            this.word.TabIndex = 6;
             this.word.Text = "Submit";
             this.word.UseVisualStyleBackColor = true;
+            this.word.Click += new System.EventHandler(this.word_Click);
             // 
             // wordTextBox
             // 
             this.wordTextBox.Location = new System.Drawing.Point(290, 217);
             this.wordTextBox.Name = "wordTextBox";
             this.wordTextBox.Size = new System.Drawing.Size(100, 20);
-            this.wordTextBox.TabIndex = 19;
+            this.wordTextBox.TabIndex = 5;
             // 
             // wordLabel
             // 
@@ -293,7 +296,7 @@
             this.wordLabel.Location = new System.Drawing.Point(251, 220);
             this.wordLabel.Name = "wordLabel";
             this.wordLabel.Size = new System.Drawing.Size(33, 13);
-            this.wordLabel.TabIndex = 20;
+            this.wordLabel.TabIndex = 102;
             this.wordLabel.Text = "Word";
             // 
             // timeLabel
@@ -302,7 +305,7 @@
             this.timeLabel.Location = new System.Drawing.Point(5, 204);
             this.timeLabel.Name = "timeLabel";
             this.timeLabel.Size = new System.Drawing.Size(78, 13);
-            this.timeLabel.TabIndex = 21;
+            this.timeLabel.TabIndex = 101;
             this.timeLabel.Text = "Game Duration";
             // 
             // timeTextBox
@@ -310,16 +313,17 @@
             this.timeTextBox.Location = new System.Drawing.Point(89, 201);
             this.timeTextBox.Name = "timeTextBox";
             this.timeTextBox.Size = new System.Drawing.Size(100, 20);
-            this.timeTextBox.TabIndex = 22;
+            this.timeTextBox.TabIndex = 3;
             // 
             // time
             // 
             this.time.Location = new System.Drawing.Point(89, 227);
             this.time.Name = "time";
             this.time.Size = new System.Drawing.Size(75, 23);
-            this.time.TabIndex = 23;
+            this.time.TabIndex = 4;
             this.time.Text = "Join Game";
             this.time.UseVisualStyleBackColor = true;
+            this.time.Click += new System.EventHandler(this.time_Click);
             // 
             // timeLeftLabel
             // 
@@ -327,7 +331,7 @@
             this.timeLeftLabel.Location = new System.Drawing.Point(308, 45);
             this.timeLeftLabel.Name = "timeLeftLabel";
             this.timeLeftLabel.Size = new System.Drawing.Size(51, 13);
-            this.timeLeftLabel.TabIndex = 24;
+            this.timeLeftLabel.TabIndex = 100;
             this.timeLeftLabel.Text = "Time Left";
             // 
             // timeLeft
@@ -336,7 +340,7 @@
             this.timeLeft.Location = new System.Drawing.Point(320, 65);
             this.timeLeft.Name = "timeLeft";
             this.timeLeft.Size = new System.Drawing.Size(26, 13);
-            this.timeLeft.TabIndex = 25;
+            this.timeLeft.TabIndex = 4;
             this.timeLeft.Text = "time";
             // 
             // playerLabel
@@ -345,7 +349,7 @@
             this.playerLabel.Location = new System.Drawing.Point(260, 45);
             this.playerLabel.Name = "playerLabel";
             this.playerLabel.Size = new System.Drawing.Size(36, 13);
-            this.playerLabel.TabIndex = 26;
+            this.playerLabel.TabIndex = 3;
             this.playerLabel.Text = "Player";
             // 
             // opponentLabel
@@ -354,7 +358,7 @@
             this.opponentLabel.Location = new System.Drawing.Point(375, 45);
             this.opponentLabel.Name = "opponentLabel";
             this.opponentLabel.Size = new System.Drawing.Size(54, 13);
-            this.opponentLabel.TabIndex = 27;
+            this.opponentLabel.TabIndex = 2;
             this.opponentLabel.Text = "Opponent";
             // 
             // playerScore
@@ -363,7 +367,7 @@
             this.playerScore.Location = new System.Drawing.Point(263, 65);
             this.playerScore.Name = "playerScore";
             this.playerScore.Size = new System.Drawing.Size(33, 13);
-            this.playerScore.TabIndex = 28;
+            this.playerScore.TabIndex = 1;
             this.playerScore.Text = "score";
             // 
             // opponentScore
@@ -372,7 +376,7 @@
             this.opponentScore.Location = new System.Drawing.Point(375, 65);
             this.opponentScore.Name = "opponentScore";
             this.opponentScore.Size = new System.Drawing.Size(33, 13);
-            this.opponentScore.TabIndex = 29;
+            this.opponentScore.TabIndex = 0;
             this.opponentScore.Text = "score";
             // 
             // menuStrip1
@@ -381,8 +385,8 @@
             this.menuToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(684, 24);
-            this.menuStrip1.TabIndex = 30;
+            this.menuStrip1.Size = new System.Drawing.Size(687, 24);
+            this.menuStrip1.TabIndex = 121;
             this.menuStrip1.Text = "menuStrip1";
             // 
             // menuToolStripMenuItem
@@ -400,24 +404,47 @@
             this.helpToolStripMenuItem.Name = "helpToolStripMenuItem";
             this.helpToolStripMenuItem.Size = new System.Drawing.Size(126, 22);
             this.helpToolStripMenuItem.Text = "Help";
+            this.helpToolStripMenuItem.Click += new System.EventHandler(this.helpToolStripMenuItem_Click);
             // 
             // exitGameToolStripMenuItem
             // 
             this.exitGameToolStripMenuItem.Name = "exitGameToolStripMenuItem";
             this.exitGameToolStripMenuItem.Size = new System.Drawing.Size(126, 22);
             this.exitGameToolStripMenuItem.Text = "Exit Game";
+            this.exitGameToolStripMenuItem.Click += new System.EventHandler(this.exitGameToolStripMenuItem_Click);
             // 
             // closeToolStripMenuItem
             // 
             this.closeToolStripMenuItem.Name = "closeToolStripMenuItem";
             this.closeToolStripMenuItem.Size = new System.Drawing.Size(126, 22);
             this.closeToolStripMenuItem.Text = "Close";
+            this.closeToolStripMenuItem.Click += new System.EventHandler(this.closeToolStripMenuItem_Click);
+            // 
+            // playerEnd
+            // 
+            this.playerEnd.FormattingEnabled = true;
+            this.playerEnd.Location = new System.Drawing.Point(454, 45);
+            this.playerEnd.Name = "playerEnd";
+            this.playerEnd.Size = new System.Drawing.Size(88, 212);
+            this.playerEnd.TabIndex = 123;
+            this.playerEnd.TabStop = false;
+            // 
+            // opponentEnd
+            // 
+            this.opponentEnd.FormattingEnabled = true;
+            this.opponentEnd.Location = new System.Drawing.Point(563, 45);
+            this.opponentEnd.Name = "opponentEnd";
+            this.opponentEnd.Size = new System.Drawing.Size(88, 212);
+            this.opponentEnd.TabIndex = 124;
+            this.opponentEnd.TabStop = false;
             // 
             // Boggle
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(684, 459);
+            this.ClientSize = new System.Drawing.Size(687, 277);
+            this.Controls.Add(this.opponentEnd);
+            this.Controls.Add(this.playerEnd);
             this.Controls.Add(this.opponentScore);
             this.Controls.Add(this.playerScore);
             this.Controls.Add(this.opponentLabel);
@@ -502,6 +529,8 @@
         private System.Windows.Forms.ToolStripMenuItem helpToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem exitGameToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem closeToolStripMenuItem;
+        private System.Windows.Forms.ListBox playerEnd;
+        private System.Windows.Forms.ListBox opponentEnd;
     }
 }
 

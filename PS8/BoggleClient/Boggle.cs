@@ -21,5 +21,30 @@ namespace BoggleClient
         {
 
         }
+
+        private void time_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void word_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void helpToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void exitGameToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void closeToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }
