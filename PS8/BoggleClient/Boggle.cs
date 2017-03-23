@@ -10,26 +10,32 @@ using System.Windows.Forms;
 
 namespace BoggleClient
 {
-    public partial class Boggle : Form
+    public partial class Boggle : Form, IBoggleView
     {
         public Boggle()
         {
             InitializeComponent();
         }
 
+        public event Action<string> PlayWordEvent;
+        public event Action<string, string> RegisterEvent;
+        public event Action<long> JoinGameEvent;
+        public event Action CancelJoinEvent;
+        public event Action CancelEvent;
+
         private void register_Click(object sender, EventArgs e)
         {
-            //RegisterEvent?.Invoke();
+            RegisterEvent?.Invoke();
         }
 
         private void time_Click(object sender, EventArgs e)
         {
-            //JoinGameEvent?.Invoke();
+            JoinGameEvent?.Invoke();
         }
 
         private void word_Click(object sender, EventArgs e)
         {
-            //SubmitWordEvent?.Invoke();
+            PlayWordEvent?.Invoke();
         }
 
         private void helpToolStripMenuItem_Click(object sender, EventArgs e)
@@ -44,7 +50,7 @@ namespace BoggleClient
 
         private void closeToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            //ClosedEvent?.Invoke();
+            //CloseEvent?.Invoke();
         }
 
         private void usernameTextbox_TextChanged(object sender, EventArgs e)
@@ -99,6 +105,11 @@ namespace BoggleClient
                     word.Enabled = true;
                 }
             }
+        }
+
+        public void EnableControls(bool enabled)
+        {
+            throw new NotImplementedException();
         }
     }
 }
