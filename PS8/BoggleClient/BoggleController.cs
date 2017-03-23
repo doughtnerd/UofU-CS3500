@@ -7,6 +7,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace BoggleClient
 {
@@ -31,6 +32,8 @@ namespace BoggleClient
 
         private string gameID;
 
+        private int playerNumber;
+
         public BoggleController(IBoggleView view)
         {
             this.view = view;
@@ -54,8 +57,7 @@ namespace BoggleClient
                 if (n.IsSuccessStatusCode)
                 {
                     dynamic responseData = RestUtil.GetResponseData(n);
-                    int score = responseData.Score;
-                    //TODO: Might need to add a delegate to the method to handle what to do based off of what the game status is.
+                    
                 }
             }), tokenSource.Token);
         }
@@ -94,11 +96,23 @@ namespace BoggleClient
             dynamic data = new ExpandoObject();
             data.UserToken = this.userToken;
             data.TimeLimit = timeLimit;
-            RestUtil.MakeRequest(domain, RestUtil.RequestType.POST, "games", data, (Action<HttpResponseMessage>)(n=> {
+            RestUtil.MakeRequest(domain, RestUtil.RequestType.POST, "games", data, (Action<HttpResponseMessage>)(n =>
+            {
                 if (n.IsSuccessStatusCode)
                 {
+                    if (((int)n.StatusCode) == 202)
+                    {
+                        playerNumber = 1;
+                    }
+                    else if (((int)n.StatusCode) == 201)
+                    {
+                        playerNumber = 2;
+                    }
                     dynamic responseData = RestUtil.GetResponseData(n);
                     gameID = responseData.GameID;
+                    view.HideMainMenu();
+                    view.BuildGame();
+                    MessageBox.Show(gameID);
                     //TODO: Do additional things with view.
                 }
             }), tokenSource.Token);
@@ -113,8 +127,12 @@ namespace BoggleClient
                 if (n.IsSuccessStatusCode)
                 {
                     dynamic responseData = RestUtil.GetResponseData(n);
-                    userToken = data.UserToken;
+                    userToken = responseData.UserToken;
+                    MessageBox.Show(userToken);
                     //TODO: Do additional things with view.
+                } else
+                {
+                    MessageBox.Show(n.StatusCode.ToString());
                 }
             }), tokenSource.Token);
         }

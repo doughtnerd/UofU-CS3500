@@ -60,6 +60,7 @@
     <Compile Include="IBoggleView.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RestUtil.cs" />
     <EmbeddedResource Include="Boggle.resx">
       <DependentUpon>Boggle.cs</DependentUpon>
     </EmbeddedResource>

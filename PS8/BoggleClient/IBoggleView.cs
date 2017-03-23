@@ -22,8 +22,22 @@ namespace BoggleClient
 
         event Action CancelJoinEvent;
 
-        event Action CancelEvent;
+        void BuildMainMenu();
 
-        void EnableControls(bool enabled);
+        void HideMainMenu();
+
+        void BuildGame();
+
+        void HideGame();
+
+        void BuildEndGame();
+
+        void HideEndGame();
+
+        void startGameData(dynamic data, int playerNumber);
+
+        void updateGameData(dynamic data, int playerNumber);
+
+        void endGameData(dynamic data, int playerNumber);
     }
 }
