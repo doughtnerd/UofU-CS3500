@@ -68,12 +68,15 @@
             this.closeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.playerEnd = new System.Windows.Forms.ListBox();
             this.opponentEnd = new System.Windows.Forms.ListBox();
+            this.playerLabel2 = new System.Windows.Forms.Label();
+            this.opponentLabel2 = new System.Windows.Forms.Label();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
             // register
             // 
-            this.register.Location = new System.Drawing.Point(89, 172);
+            this.register.Enabled = false;
+            this.register.Location = new System.Drawing.Point(104, 127);
             this.register.Name = "register";
             this.register.Size = new System.Drawing.Size(75, 23);
             this.register.TabIndex = 2;
@@ -83,7 +86,7 @@
             // 
             // usernameTextbox
             // 
-            this.usernameTextbox.Location = new System.Drawing.Point(89, 120);
+            this.usernameTextbox.Location = new System.Drawing.Point(104, 75);
             this.usernameTextbox.Name = "usernameTextbox";
             this.usernameTextbox.Size = new System.Drawing.Size(100, 20);
             this.usernameTextbox.TabIndex = 0;
@@ -91,7 +94,7 @@
             // 
             // serverTextBox
             // 
-            this.serverTextBox.Location = new System.Drawing.Point(89, 146);
+            this.serverTextBox.Location = new System.Drawing.Point(104, 101);
             this.serverTextBox.Name = "serverTextBox";
             this.serverTextBox.Size = new System.Drawing.Size(100, 20);
             this.serverTextBox.TabIndex = 1;
@@ -100,7 +103,7 @@
             // usernameLabel
             // 
             this.usernameLabel.AutoSize = true;
-            this.usernameLabel.Location = new System.Drawing.Point(28, 123);
+            this.usernameLabel.Location = new System.Drawing.Point(43, 78);
             this.usernameLabel.Name = "usernameLabel";
             this.usernameLabel.Size = new System.Drawing.Size(55, 13);
             this.usernameLabel.TabIndex = 120;
@@ -109,7 +112,7 @@
             // serverLabel
             // 
             this.serverLabel.AutoSize = true;
-            this.serverLabel.Location = new System.Drawing.Point(45, 149);
+            this.serverLabel.Location = new System.Drawing.Point(60, 104);
             this.serverLabel.Name = "serverLabel";
             this.serverLabel.Size = new System.Drawing.Size(38, 13);
             this.serverLabel.TabIndex = 119;
@@ -277,6 +280,7 @@
             // 
             // word
             // 
+            this.word.Enabled = false;
             this.word.Location = new System.Drawing.Point(290, 241);
             this.word.Name = "word";
             this.word.Size = new System.Drawing.Size(75, 23);
@@ -305,7 +309,7 @@
             // timeLabel
             // 
             this.timeLabel.AutoSize = true;
-            this.timeLabel.Location = new System.Drawing.Point(5, 204);
+            this.timeLabel.Location = new System.Drawing.Point(20, 159);
             this.timeLabel.Name = "timeLabel";
             this.timeLabel.Size = new System.Drawing.Size(78, 13);
             this.timeLabel.TabIndex = 101;
@@ -313,7 +317,7 @@
             // 
             // timeTextBox
             // 
-            this.timeTextBox.Location = new System.Drawing.Point(89, 201);
+            this.timeTextBox.Location = new System.Drawing.Point(104, 156);
             this.timeTextBox.Name = "timeTextBox";
             this.timeTextBox.Size = new System.Drawing.Size(100, 20);
             this.timeTextBox.TabIndex = 3;
@@ -321,7 +325,8 @@
             // 
             // time
             // 
-            this.time.Location = new System.Drawing.Point(89, 227);
+            this.time.Enabled = false;
+            this.time.Location = new System.Drawing.Point(104, 182);
             this.time.Name = "time";
             this.time.Size = new System.Drawing.Size(75, 23);
             this.time.TabIndex = 4;
@@ -332,7 +337,7 @@
             // timeLeftLabel
             // 
             this.timeLeftLabel.AutoSize = true;
-            this.timeLeftLabel.Location = new System.Drawing.Point(308, 45);
+            this.timeLeftLabel.Location = new System.Drawing.Point(306, 48);
             this.timeLeftLabel.Name = "timeLeftLabel";
             this.timeLeftLabel.Size = new System.Drawing.Size(51, 13);
             this.timeLeftLabel.TabIndex = 100;
@@ -341,7 +346,7 @@
             // timeLeft
             // 
             this.timeLeft.AutoSize = true;
-            this.timeLeft.Location = new System.Drawing.Point(320, 65);
+            this.timeLeft.Location = new System.Drawing.Point(321, 68);
             this.timeLeft.Name = "timeLeft";
             this.timeLeft.Size = new System.Drawing.Size(26, 13);
             this.timeLeft.TabIndex = 4;
@@ -350,7 +355,7 @@
             // playerLabel
             // 
             this.playerLabel.AutoSize = true;
-            this.playerLabel.Location = new System.Drawing.Point(260, 45);
+            this.playerLabel.Location = new System.Drawing.Point(264, 48);
             this.playerLabel.Name = "playerLabel";
             this.playerLabel.Size = new System.Drawing.Size(36, 13);
             this.playerLabel.TabIndex = 3;
@@ -359,7 +364,7 @@
             // opponentLabel
             // 
             this.opponentLabel.AutoSize = true;
-            this.opponentLabel.Location = new System.Drawing.Point(375, 45);
+            this.opponentLabel.Location = new System.Drawing.Point(363, 48);
             this.opponentLabel.Name = "opponentLabel";
             this.opponentLabel.Size = new System.Drawing.Size(54, 13);
             this.opponentLabel.TabIndex = 2;
@@ -368,7 +373,7 @@
             // playerScore
             // 
             this.playerScore.AutoSize = true;
-            this.playerScore.Location = new System.Drawing.Point(263, 65);
+            this.playerScore.Location = new System.Drawing.Point(267, 68);
             this.playerScore.Name = "playerScore";
             this.playerScore.Size = new System.Drawing.Size(33, 13);
             this.playerScore.TabIndex = 1;
@@ -377,7 +382,7 @@
             // opponentScore
             // 
             this.opponentScore.AutoSize = true;
-            this.opponentScore.Location = new System.Drawing.Point(375, 65);
+            this.opponentScore.Location = new System.Drawing.Point(374, 68);
             this.opponentScore.Name = "opponentScore";
             this.opponentScore.Size = new System.Drawing.Size(33, 13);
             this.opponentScore.TabIndex = 0;
@@ -427,26 +432,46 @@
             // playerEnd
             // 
             this.playerEnd.FormattingEnabled = true;
-            this.playerEnd.Location = new System.Drawing.Point(454, 45);
+            this.playerEnd.Location = new System.Drawing.Point(454, 58);
             this.playerEnd.Name = "playerEnd";
-            this.playerEnd.Size = new System.Drawing.Size(88, 212);
-            this.playerEnd.TabIndex = 123;
+            this.playerEnd.Size = new System.Drawing.Size(88, 199);
+            this.playerEnd.TabIndex = 3;
             this.playerEnd.TabStop = false;
             // 
             // opponentEnd
             // 
             this.opponentEnd.FormattingEnabled = true;
-            this.opponentEnd.Location = new System.Drawing.Point(563, 45);
+            this.opponentEnd.Location = new System.Drawing.Point(563, 58);
             this.opponentEnd.Name = "opponentEnd";
-            this.opponentEnd.Size = new System.Drawing.Size(88, 212);
-            this.opponentEnd.TabIndex = 124;
+            this.opponentEnd.Size = new System.Drawing.Size(88, 199);
+            this.opponentEnd.TabIndex = 2;
             this.opponentEnd.TabStop = false;
+            // 
+            // playerLabel2
+            // 
+            this.playerLabel2.AutoSize = true;
+            this.playerLabel2.Location = new System.Drawing.Point(477, 37);
+            this.playerLabel2.Name = "playerLabel2";
+            this.playerLabel2.Size = new System.Drawing.Size(36, 13);
+            this.playerLabel2.TabIndex = 1;
+            this.playerLabel2.Text = "Player";
+            // 
+            // opponentLabel2
+            // 
+            this.opponentLabel2.AutoSize = true;
+            this.opponentLabel2.Location = new System.Drawing.Point(576, 37);
+            this.opponentLabel2.Name = "opponentLabel2";
+            this.opponentLabel2.Size = new System.Drawing.Size(54, 13);
+            this.opponentLabel2.TabIndex = 0;
+            this.opponentLabel2.Text = "Opponent";
             // 
             // Boggle
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(687, 277);
+            this.Controls.Add(this.opponentLabel2);
+            this.Controls.Add(this.playerLabel2);
             this.Controls.Add(this.opponentEnd);
             this.Controls.Add(this.playerEnd);
             this.Controls.Add(this.opponentScore);
@@ -535,6 +560,8 @@
         private System.Windows.Forms.ToolStripMenuItem closeToolStripMenuItem;
         private System.Windows.Forms.ListBox playerEnd;
         private System.Windows.Forms.ListBox opponentEnd;
+        private System.Windows.Forms.Label playerLabel2;
+        private System.Windows.Forms.Label opponentLabel2;
     }
 }
 
