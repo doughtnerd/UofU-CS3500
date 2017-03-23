@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Driver
@@ -14,19 +15,22 @@ namespace Driver
         {
             Task task = Task.Run(() => MakePostRequest());
             task.Wait();
+            Thread.Sleep(100000);
         }
 
         public static void MakePostRequest()
         {
             dynamic data = new ExpandoObject();
-            data.NickName = "Chris";
+            data.Nickname = "Chris";
+            /*
             BoggleController.MakeRequest(
                 "http://cs3500-boggle-s17.azurewebsites.net/BoggleService.svc/",
-                BoggleController.RequestType.POST,
+                RestUtil.RequestType.POST
                 "users",
                 data,
-                (Action<string>)(n => { Console.WriteLine(n); }),
-                new System.Threading.CancellationTokenSource().Token);
+                (Action<dynamic>)(n => { Console.WriteLine(n.UserToken); }),
+                new CancellationTokenSource().Token);
+            */
         }
     }
 }

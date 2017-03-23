@@ -79,7 +79,7 @@ namespace BoggleClient
             }
             else
             {
-                if (/*is registered*/)
+                //if (/*is registered*/)
                 {
                     time.Enabled = true;
                 }
@@ -94,7 +94,7 @@ namespace BoggleClient
             }
             else
             {
-                if (/*is in active game*/)
+                //if (/*is in active game*/)
                 {
                     word.Enabled = true;
                 }

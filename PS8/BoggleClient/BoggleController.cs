@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
@@ -11,95 +12,111 @@ namespace BoggleClient
 {
     public class BoggleController
     {
-
+        /// <summary>
+        /// The view this controller is currently managing.
+        /// </summary>
         IBoggleView view;
+
+        /// <summary>
+        /// The token source used for cancelling server requests.
+        /// </summary>
         private CancellationTokenSource tokenSource;
 
+        private string domain;
+
+        /// <summary>
+        /// The user's current user token, created when the user registered on the server.
+        /// </summary>
+        private string userToken;
+
+        private string gameID;
 
         public BoggleController(IBoggleView view)
         {
             this.view = view;
             tokenSource = new CancellationTokenSource();
+            RegisterHandlers();
         }
 
-
-        public static async void MakeRequest(string baseURL, RequestType type, string requestExtension, dynamic requestData, Action<string> callback, CancellationToken token)
+        void RegisterHandlers()
         {
-            try
-            {
-                using (HttpClient client = CreateClient(baseURL))
+            view.RegisterEvent += HandleRegisterUser;
+            view.JoinGameEvent += HandleJoinGame;
+            view.CancelJoinEvent += HandleCancelJoin;
+            view.PlayWordEvent += HandlePlayWord;
+        }
+
+        void GetGameStatus(bool brief)
+        {
+            dynamic data = new ExpandoObject();
+            data = brief ? "?Brief=yes" : "?Brief=no";
+            RestUtil.MakeRequest(domain, RestUtil.RequestType.GET, "games/" + gameID, data, (Action<HttpResponseMessage>)(n => {
+                if (n.IsSuccessStatusCode)
                 {
-                    StringContent content = new StringContent(JsonConvert.SerializeObject(requestData), Encoding.UTF8, "application/json");
-                    
-
-                    switch (type)
-                    {
-                        case RequestType.POST:
-                            {
-                                HttpResponseMessage response = await client.PostAsync(requestExtension, content, token);
-                                HandleResponse(response, callback);
-                                break;
-                            }
-                        case RequestType.GET:
-                            {
-                                HttpResponseMessage response = await client.GetAsync(requestExtension + "/" + content, token);
-                                HandleResponse(response, callback);
-                                break;
-                            }
-                    }
+                    dynamic responseData = RestUtil.GetResponseData(n);
+                    int score = responseData.Score;
+                    //TODO: Might need to add a delegate to the method to handle what to do based off of what the game status is.
                 }
-            }
-            catch (Exception e)
-            {
-                if(e is TaskCanceledException)
+            }), tokenSource.Token);
+        }
+
+        void HandlePlayWord(string word)
+        {
+            dynamic data = new ExpandoObject();
+            data.UserToken = this.userToken;
+            data.Word = word;
+            RestUtil.MakeRequest(domain, RestUtil.RequestType.PUT, "games/"+gameID, data, (Action<HttpResponseMessage>)(n => {
+                if (n.IsSuccessStatusCode)
                 {
-                    Console.WriteLine("Request Cancelled");
+                    dynamic responseData = RestUtil.GetResponseData(n);
+                    int score = responseData.Score;
+                    //TODO: Do stuff with the score.
                 }
-                else
+            }), tokenSource.Token);
+        }
+
+        public void HandleCancelJoin()
+        {
+            dynamic data = new ExpandoObject();
+            data.UserToken = this.userToken;
+            RestUtil.MakeRequest(domain, RestUtil.RequestType.PUT, "games", data, (Action<HttpResponseMessage>)(n => {
+                if (n.IsSuccessStatusCode)
                 {
-                    Console.WriteLine(e.Message);
+                    dynamic responseData = RestUtil.GetResponseData(n);
+                    gameID = null;
+                    //TODO: Will need to reset view
                 }
-            }
+            }), tokenSource.Token);
         }
 
-        static void HandleResponse(HttpResponseMessage response, Action<string> callback)
+        public void HandleJoinGame(long timeLimit)
         {
-            if (response.IsSuccessStatusCode)
-            {
-                string result = response.Content.ReadAsStringAsync().Result;
-                Console.WriteLine(result);
-                callback(result);
-            }
-            else
-            {
-                Console.WriteLine(response.StatusCode);
-                Console.WriteLine(response.ReasonPhrase);
-            }
+            dynamic data = new ExpandoObject();
+            data.UserToken = this.userToken;
+            data.TimeLimit = timeLimit;
+            RestUtil.MakeRequest(domain, RestUtil.RequestType.POST, "games", data, (Action<HttpResponseMessage>)(n=> {
+                if (n.IsSuccessStatusCode)
+                {
+                    dynamic responseData = RestUtil.GetResponseData(n);
+                    gameID = responseData.GameID;
+                    //TODO: Do additional things with view.
+                }
+            }), tokenSource.Token);
         }
 
-        /// <summary>
-        /// Creates an HttpClient for communicating with the server.
-        /// </summary>
-        private static HttpClient CreateClient(string baseAddress)
+        public void HandleRegisterUser(string domain, string nickName)
         {
-            // Create a client whose base address is the GitHub server
-            HttpClient client = new HttpClient();
-            client.BaseAddress = new Uri(baseAddress);
-
-            // Tell the server that the client will accept this particular type of response data
-            client.DefaultRequestHeaders.Accept.Clear();
-            client.DefaultRequestHeaders.Add("Accept", "application/json");
-
-            // There is more client configuration to do, depending on the request.
-            return client;
-        }
-
-        public enum RequestType
-        {
-            GET,
-            POST,
-            PUT,
-            DELETE
+            this.domain = domain;
+            dynamic data = new ExpandoObject();
+            data.Nickname = nickName;
+            RestUtil.MakeRequest(domain, RestUtil.RequestType.POST, "users", data, (Action<HttpResponseMessage>)(n=> {
+                if (n.IsSuccessStatusCode)
+                {
+                    dynamic responseData = RestUtil.GetResponseData(n);
+                    userToken = data.UserToken;
+                    //TODO: Do additional things with view.
+                }
+            }), tokenSource.Token);
         }
     }
 }
