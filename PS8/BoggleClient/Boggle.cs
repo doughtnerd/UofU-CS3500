@@ -12,43 +12,44 @@ namespace BoggleClient
 {
     public partial class Boggle : Form, IBoggleView
     {
+        public event Action<string> PlayWordEvent;
+        public event Action<string, string> RegisterEvent;
+        public event Action<long> JoinGameEvent;
+        public event Action CancelJoinEvent;
+        public event Action ExitGameEvent;
+
         public Boggle()
         {
             InitializeComponent();
         }
 
-        public event Action<string> PlayWordEvent;
-        public event Action<string, string> RegisterEvent;
-        public event Action<long> JoinGameEvent;
-        public event Action CancelJoinEvent;
-
-        private void register_Click(object sender, EventArgs e)
+        private void RegisterButton_Click(object sender, EventArgs e)
         {
-            if (this.register.Text.Equals("Register"))
+            if (this.registerButton.Text.Equals("Register"))
             {
-                this.register.Text = "Cancel";
-                RegisterEvent?.Invoke(this.serverTextBox.Text, this.usernameTextbox.Text);
-                this.register.Text = "Register";
+                this.registerButton.Text = "Cancel";
+                RegisterEvent?.Invoke(this.domainTextBox.Text, this.usernameTextbox.Text);
+                this.registerButton.Text = "Register";
             }
             else
             {
-                this.register.Text = "Register";
+                this.registerButton.Text = "Register";
             }
         }
 
-        private void time_Click(object sender, EventArgs e)
+        private void JoinGameButton_Click(object sender, EventArgs e)
         {
             long result;
-            if(long.TryParse(this.timeTextBox.Text, out result))
+            if(long.TryParse(this.gameLengthEntry.Value.ToString(), out result))
             {
-                if (this.time.Text.Equals("Join Game"))
+                if (this.joinGameButton.Text.Equals("Join Game"))
                 {
-                    this.time.Text = "Cancel";
+                    this.joinGameButton.Text = "Cancel";
                     JoinGameEvent?.Invoke(result);
                 }
                 else
                 {
-                    this.time.Text = "Join Game";
+                    this.joinGameButton.Text = "Join Game";
                     CancelJoinEvent?.Invoke();
                 }
             }
@@ -58,192 +59,158 @@ namespace BoggleClient
             }
         }
 
-        private void word_Click(object sender, EventArgs e)
+        private void UsernameTextBox_TextChanged(object sender, EventArgs e)
         {
-            PlayWordEvent?.Invoke(this.wordTextBox.Text);
-        }
-
-        private void usernameTextbox_TextChanged(object sender, EventArgs e)
-        {
-            if (usernameTextbox.TextLength == 0 || serverTextBox.TextLength == 0)
+            if (usernameTextbox.TextLength == 0 || domainTextBox.TextLength == 0)
             {
-                register.Enabled = false;
+                registerButton.Enabled = false;
             }
             else
             {
-                register.Enabled = true;
+                registerButton.Enabled = true;
             }
         }
 
-        private void serverTextBox_TextChanged(object sender, EventArgs e)
+        private void ServerTextBox_TextChanged(object sender, EventArgs e)
         {
-            if (serverTextBox.TextLength == 0 || usernameTextbox.TextLength == 0)
+            if (domainTextBox.TextLength == 0 || usernameTextbox.TextLength == 0)
             {
-                register.Enabled = false;
+                registerButton.Enabled = false;
             }
             else
             {
-                register.Enabled = true;
+                registerButton.Enabled = true;
             }
         }
 
-        private void timeTextBox_TextChanged(object sender, EventArgs e)
+        public void SetMainMenuEnabled(bool enabled)
         {
-            if (timeTextBox.TextLength == 0)
-            {
-                time.Enabled = false;
-            }
-            else
-            {
-                //if (userToken != null)
-                //{
-                    time.Enabled = true;
-                //}
-            }
+            this.mainMenu.Visible = enabled;
         }
 
-        private void wordTextBox_TextChanged(object sender, EventArgs e)
+        public void SetGameViewEnabled(bool enabled)
         {
-            if (wordTextBox.TextLength == 0)
-            {
-                word.Enabled = false;
-            }
-            else
-            {
-                word.Enabled = true;
-            }
-        }
-
-        public void BuildMainMenu()
-        {
-            this.mainMenu.Visible = true;
-        }
-
-        public void HideMainMenu()
-        {
-            this.mainMenu.Visible = false;
-        }
-
-        public void BuildGame()
-        {
-            this.game.Visible = true;
-        }
-
-        public void HideGame()
-        {
-            this.game.Visible = false;
-        }
-
-        public void BuildEndGame()
-        {
-            this.endGame.Visible = true;
-        }
-
-        public void HideEndGame()
-        {
-            this.endGame.Visible = false;
-        }
-
-        public void startGame()
-        {
-
-        }
-
-        public void startGameData(dynamic data, int playerNumber)
-        {
-            this.boardLabel1 = data.Board.ElementAt(0);
-            this.boardLabel2 = data.Board.ElementAt(1);
-            this.boardLabel3 = data.Board.ElementAt(2);
-            this.boardLabel4 = data.Board.ElementAt(3);
-            this.boardLabel5 = data.Board.ElementAt(4);
-            this.boardLabel6 = data.Board.ElementAt(5);
-            this.boardLabel7 = data.Board.ElementAt(6);
-            this.boardLabel8 = data.Board.ElementAt(7);
-            this.boardLabel9 = data.Board.ElementAt(8);
-            this.boardLabel10 = data.Board.ElementAt(9);
-            this.boardLabel11 = data.Board.ElementAt(10);
-            this.boardLabel12 = data.Board.ElementAt(11);
-            this.boardLabel13 = data.Board.ElementAt(12);
-            this.boardLabel14 = data.Board.ElementAt(13);
-            this.boardLabel15 = data.Board.ElementAt(14);
-            this.boardLabel16 = data.Board.ElementAt(15);
-            this.timeLeft = data.TimeLimit;
-            if (playerNumber == 1)
-            {
-                this.playerLabel = data.Player1.NickName;
-                this.playerScore = data.Player1.Score;
-                this.opponentLabel = data.PLayer2.NickName;
-                this.opponentScore = data.Player2.Score;
-            }
-            else if (playerNumber == 2)
-            {
-                this.playerLabel = data.Player2.NickName;
-                this.playerScore = data.Player2.Score;
-                this.opponentLabel = data.PLayer1.NickName;
-                this.opponentScore = data.Player1.Score;
-            }
-            this.game.Refresh();
-        }
-
-        public void updateGameData(dynamic data, int playerNumber)
-        {
-            this.timeLeft = data.TimeLeft;
-            if (playerNumber == 1)
-            {
-                this.playerScore = data.Player1.Score;
-                this.opponentScore = data.Player2.Score;
-            }
-            else if (playerNumber == 2)
-            {
-                this.playerScore = data.Player2.Score;
-                this.opponentScore = data.Player1.Score;
-            }
-            this.game.Refresh();
-        }
-
-        public void endGameData(dynamic data, int playerNumber)
-        {
-            if (playerNumber == 1)
-            {
-                this.playerLabel = data.Player1.NickName;
-                this.playerEnd = data.Player1.WordsPlayed;
-                this.opponentLabel = data.PLayer2.NickName;
-                this.opponentEnd = data.Player2.WordsPlayed;
-            }
-            else if (playerNumber == 2)
-            {
-                this.playerLabel = data.Player2.NickName;
-                this.playerEnd = data.Player2.Wordsplayed;
-                this.opponentLabel = data.PLayer1.NickName;
-                this.opponentEnd = data.Player1.Wordsplayed;
-            }
-            this.endGame.Refresh();
-        }
-
-        private void closeToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            Close();
-        }
-
-        private void helpToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            MessageBox.Show("Game.");
-        }
-
-        private void helpToolStripMenuItem1_Click(object sender, EventArgs e)
-        {
-            MessageBox.Show("Main menu.");
-        }
-
-        private void helpToolStripMenuItem2_Click(object sender, EventArgs e)
-        {
-            MessageBox.Show("End game.");
+            this.game.Enabled = enabled;
         }
 
         private void exitGameToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            HideEndGame();
-            BuildMainMenu();
+            ExitGameEvent?.Invoke();
+        }
+
+        /// <summary>
+        /// Sets the text of the domain field to the given string.
+        /// </summary>
+        /// <param name="s"></param>
+        public void SetDomain(string s)
+        {
+            this.domainTextBox.Text = s;
+        }
+
+        /// <summary>
+        /// This allows access to the view's gamelength entry textfield.
+        /// Field can be set to enabled or disabled as necessary.
+        /// </summary>
+        /// <param name="enabled"></param>
+        public void SetJoinGameActive(bool enabled)
+        {
+            this.gameLengthEntry.Enabled = enabled;
+            this.joinGameButton.Enabled = enabled;
+        }
+
+        /// <summary>
+        /// Controls the domain, username, and register button.
+        /// </summary>
+        /// <param name="enabled"></param>
+        public void SetRegistrationActive(bool enabled)
+        {
+            this.domainTextBox.Enabled = enabled;
+            this.usernameTextbox.Enabled = enabled;
+            this.registerButton.Enabled = enabled;
+        }
+
+        public void SetGameBoard(string s)
+        {
+            int i = 0;
+            this.boardLabel1.Text = s[0].ToString();
+            this.boardLabel2.Text = s[1].ToString();
+            this.boardLabel3.Text = s[2].ToString();
+            this.boardLabel4.Text = s[3].ToString();
+            this.boardLabel5.Text = s[4].ToString();
+            this.boardLabel6.Text = s[5].ToString();
+            this.boardLabel7.Text = s[6].ToString();
+            this.boardLabel8.Text = s[7].ToString();
+            this.boardLabel9.Text = s[8].ToString();
+            this.boardLabel10.Text = s[9].ToString();
+            this.boardLabel11.Text = s[10].ToString();
+            this.boardLabel12.Text = s[11].ToString();
+            this.boardLabel13.Text = s[12].ToString();
+            this.boardLabel14.Text = s[13].ToString();
+            this.boardLabel15.Text = s[14].ToString();
+            this.boardLabel16.Text = s[15].ToString();
+            gridPanel.Refresh();
+        }
+
+        private void wordTextBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if(e.KeyCode == Keys.Enter)
+            {
+                TextBox box = sender as TextBox;
+                PlayWordEvent?.Invoke(box.Text);
+                e.SuppressKeyPress = true;
+                box.Text = "";
+            }
+        }
+
+        public void SetGameStatus(string s)
+        {
+            this.gameStatusLabel.Text = "Game Status: " + s;
+        }
+
+        public void SetTimeLeft(string s)
+        {
+            this.timeLeft.Text = s;
+        }
+
+        public void SetScores(int playerOne, int playerTwo)
+        {
+            this.player1Score.Text = playerOne.ToString();
+            this.player2Score.Text = playerTwo.ToString();
+        }
+
+        public void SetWords(string[] playerOne, string[] playerTwo)
+        {
+            playerOneWords.Items.Clear();
+            playerTwoWords.Items.Clear();
+            playerOneWords.Items.AddRange(playerOne);
+            playerTwoWords.Items.AddRange(playerTwo);
+            playerOneWords.Refresh();
+            playerTwoWords.Refresh();
+        }
+
+        public void SetJoinButtonText(string s)
+        {
+            this.joinGameButton.Text = s;
+        }
+
+        private void exitToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Close();
+        }
+
+        private void registrationToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show("To register, enter a username and the server domain to use then press the register button.");
+        }
+
+        private void joiningAGameToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show("To join a game, enter a positive number in the duration field and press the join game button.");
+        }
+
+        private void playingToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show("To play, enter a word into the Word field and press enter to submit.");
         }
     }
 }

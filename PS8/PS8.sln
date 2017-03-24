@@ -5,10 +5,6 @@ VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BoggleClient", "BoggleClient\BoggleClient.csproj", "{401CB582-5766-4881-8FE0-1B0CFCB93442}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PS8Tests", "PS8Tests\PS8Tests.csproj", "{2F6676C2-48DE-41F9-BC70-F097420A60E1}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Driver", "Driver\Driver.csproj", "{F5AEEBB9-770D-4DC8-9E09-073F33386DE3}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -19,14 +15,6 @@ Global
 		{401CB582-5766-4881-8FE0-1B0CFCB93442}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{401CB582-5766-4881-8FE0-1B0CFCB93442}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{401CB582-5766-4881-8FE0-1B0CFCB93442}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2F6676C2-48DE-41F9-BC70-F097420A60E1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2F6676C2-48DE-41F9-BC70-F097420A60E1}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2F6676C2-48DE-41F9-BC70-F097420A60E1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2F6676C2-48DE-41F9-BC70-F097420A60E1}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F5AEEBB9-770D-4DC8-9E09-073F33386DE3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F5AEEBB9-770D-4DC8-9E09-073F33386DE3}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F5AEEBB9-770D-4DC8-9E09-073F33386DE3}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F5AEEBB9-770D-4DC8-9E09-073F33386DE3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -3,11 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Timers;
 
 namespace BoggleClient
 {
     public interface IBoggleView
     {
+        /// <summary>
+        /// Notifies subscribers of the word played.
+        /// </summary>
         event Action<string> PlayWordEvent;
 
         /// <summary>
@@ -20,24 +24,73 @@ namespace BoggleClient
         /// </summary>
         event Action<long> JoinGameEvent;
 
+        /// <summary>
+        /// Notifies that a cancel join event has fired.
+        /// </summary>
         event Action CancelJoinEvent;
 
-        void BuildMainMenu();
+        /// <summary>
+        /// Notifies the user wants to exit the game
+        /// </summary>
+        event Action ExitGameEvent;
 
-        void HideMainMenu();
+        /// <summary>
+        /// Sets the join button text so it can decide which event to fire.
+        /// </summary>
+        /// <param name="s"></param>
+        void SetJoinButtonText(string s);
 
-        void BuildGame();
+        /// <summary>
+        /// Sets the words in the listboxes for each player.
+        /// </summary>
+        void SetWords(string[] playerOne, string[] playerTwo);
 
-        void HideGame();
+        /// <summary>
+        /// Sets the score text for each player.
+        /// </summary>
+        void SetScores(int playerOne, int playerTwo);
 
-        void BuildEndGame();
+        /// <summary>
+        /// Sets up the gameboard to use the given string for its pieces.
+        /// </summary>
+        void SetGameBoard(string s);
 
-        void HideEndGame();
+        /// <summary>
+        /// Sets the domain of the view.
+        /// </summary>
+        void SetDomain(string s);
 
-        void startGameData(dynamic data, int playerNumber);
+        /// <summary>
+        /// Sets the current game status
+        /// </summary>
+        void SetGameStatus(string s);
 
-        void updateGameData(dynamic data, int playerNumber);
+        /// <summary>
+        /// Sets the time left to the given string.
+        /// </summary>
+        /// <param name="s"></param>
+        void SetTimeLeft(string s);
 
-        void endGameData(dynamic data, int playerNumber);
+        /// <summary>
+        /// Whether or not the join game button is active.
+        /// </summary>
+        void SetJoinGameActive(bool enabled);
+
+        /// <summary>
+        /// Whether or not the registration button is active.
+        /// </summary>
+        /// <param name="enabled"></param>
+        void SetRegistrationActive(bool enabled);
+
+        /// <summary>
+        /// Whether or not the main menu is enabled
+        /// </summary>
+        void SetMainMenuEnabled(bool enabled);
+
+        /// <summary>
+        /// Whether or not the game view is enabled.
+        /// </summary>
+        /// <param name="enabled"></param>
+        void SetGameViewEnabled(bool enabled);
     }
 }
