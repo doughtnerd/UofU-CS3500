@@ -2,6 +2,7 @@
 using System.IO;
 using System.ServiceModel;
 using System.ServiceModel.Web;
+using static Boggle.DataModels;
 
 namespace Boggle
 {
@@ -14,12 +15,19 @@ namespace Boggle
         [WebGet(UriTemplate = "/api")]
         Stream API();
 
-        /// <summary>
-        /// Returns the nth word from dictionary.txt.  If there is
-        /// no nth word, responds with code 403. This is a demo;
-        /// you can delete it.
-        /// </summary>
-        [WebGet(UriTemplate = "/word?index={n}")]
-        string WordAtIndex(int n);
+        [WebInvoke(Method = "POST", UriTemplate = "/users")]
+        Token Register(User user);
+
+        [WebInvoke(Method = "POST", UriTemplate = "/games")]
+        GameInfo Join(JoinInfo user);
+
+        [WebInvoke(Method = "PUT", UriTemplate = "/games")]
+        void CancelJoin(User user);
+
+        [WebInvoke(Method = "PUT", UriTemplate = "/games/{id}")]
+        ScoreInfo PlayWord(int id, PlayInfo user);
+
+        [WebGet(UriTemplate = "/games/{id}")]
+        GameStatus GameStatus(int id);
     }
 }

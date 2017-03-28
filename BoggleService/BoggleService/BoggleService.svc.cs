@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.IO;
 using System.Net;
 using System.ServiceModel.Web;
+using static Boggle.DataModels;
 using static System.Net.HttpStatusCode;
 
 namespace Boggle
@@ -30,37 +32,51 @@ namespace Boggle
             return File.OpenRead(AppDomain.CurrentDomain.BaseDirectory + "index.html");
         }
 
-        /// <summary>
-        /// Demo.  You can delete this.
-        /// </summary>
-        public string WordAtIndex(int n)
+        public void CancelJoin(User user)
         {
-            if (n < 0)
+            //TODO:Check if user token is valid;
+            //TODO:Ensure player is actually in game.
+
+            //SetStatus(OK);
+        }
+
+        public GameStatus GameStatus(int id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public GameInfo Join(JoinInfo user)
+        {
+            //TODO:Check if user token is valid in the database.
+            //TODO:Check if user is currently in a game.
+            //TODO:If handle game creation/joining logic.
+            //TODO:Calculate average game time.
+            GameInfo info = new GameInfo();
+            info.GameID = "10"; //TODO: Change to the actual game ID.
+            return info;
+        }
+
+        public ScoreInfo PlayWord(int id, PlayInfo user)
+        {
+            //TODO:Ensure word played is not null or empty after being trimmed.
+            //TODO:Ensure id is valid
+            //TODO:Ensure user is actually in the specified game.
+            //TODO:Check if the game is currently active.
+            //TODO:Reply with score data.
+            return null; //TODO:Change
+        }
+
+        public Token Register(User user)
+        {
+            if (string.IsNullOrEmpty(user.Nickname))
             {
                 SetStatus(Forbidden);
                 return null;
             }
-
-            string line;
-            using (StreamReader file = new System.IO.StreamReader(AppDomain.CurrentDomain.BaseDirectory + "dictionary.txt"))
-            {
-                while ((line = file.ReadLine()) != null)
-                {
-                    if (n == 0) break;
-                    n--;
-                }
-            }
-
-            if (n == 0)
-            {
-                SetStatus(OK);
-                return line;
-            }
-            else
-            {
-                SetStatus(Forbidden);
-                return null;
-            }
+            //TODO: Store user and usertoken.
+            Token t = new Token();
+            t.UserToken = Guid.NewGuid().ToString();
+            return t;
         }
     }
 }
