@@ -32,7 +32,7 @@ namespace Boggle
             return File.OpenRead(AppDomain.CurrentDomain.BaseDirectory + "index.html");
         }
 
-        public void CancelJoin(User user)
+        public void CancelJoin(RegisterInfo user)
         {
             //TODO:Check if user token is valid;
             //TODO:Ensure player is actually in game.
@@ -66,7 +66,7 @@ namespace Boggle
             return null; //TODO:Change
         }
 
-        public Token Register(User user)
+        public UserInfo Register(RegisterInfo user)
         {
             if (string.IsNullOrEmpty(user.Nickname))
             {
@@ -74,7 +74,7 @@ namespace Boggle
                 return null;
             }
             //TODO: Store user and usertoken.
-            Token t = new Token();
+            UserInfo t = new UserInfo();
             t.UserToken = Guid.NewGuid().ToString();
             return t;
         }

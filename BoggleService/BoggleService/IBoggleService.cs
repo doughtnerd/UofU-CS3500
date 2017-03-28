@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.ServiceModel;
 using System.ServiceModel.Web;
@@ -16,18 +17,18 @@ namespace Boggle
         Stream API();
 
         [WebInvoke(Method = "POST", UriTemplate = "/users")]
-        Token Register(User user);
+        UserInfo Register(RegisterInfo user);
 
         [WebInvoke(Method = "POST", UriTemplate = "/games")]
         GameInfo Join(JoinInfo user);
 
         [WebInvoke(Method = "PUT", UriTemplate = "/games")]
-        void CancelJoin(User user);
+        void CancelJoin(RegisterInfo user);
 
         [WebInvoke(Method = "PUT", UriTemplate = "/games/{id}")]
         ScoreInfo PlayWord(int id, PlayInfo user);
 
         [WebGet(UriTemplate = "/games/{id}")]
-        GameStatus GameStatus(int id);
+        IDictionary<string, object> GameStatus(int id);
     }
 }

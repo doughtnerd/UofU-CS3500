@@ -7,12 +7,12 @@ namespace Boggle
 {
     public class DataModels
     {
-        public class User
+        public class RegisterInfo
         {
             public string Nickname { get; set; }
         }
 
-        public class Token
+        public class UserInfo
         {
             public string UserToken { get; set; }
         }
@@ -25,7 +25,7 @@ namespace Boggle
 
         public class GameStatus
         {
-
+            
         }
 
         public class GameInfo
