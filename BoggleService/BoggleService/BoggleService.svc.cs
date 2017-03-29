@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.IO;
@@ -11,6 +12,12 @@ namespace Boggle
 {
     public class BoggleService : IBoggleService
     {
+        private static ConcurrentDictionary<string, string> users = new ConcurrentDictionary<string, string>();
+        private static ConcurrentQueue<Game> pendingGames = new ConcurrentQueue<Game>();
+        private static ConcurrentBag<Game> activeGames = new ConcurrentBag<Game>();
+        private static ConcurrentBag<Game> completedGames = new ConcurrentBag<Game>();
+        
+
         /// <summary>
         /// The most recent call to SetStatus determines the response code used when
         /// an http response is sent.
@@ -32,38 +39,152 @@ namespace Boggle
             return File.OpenRead(AppDomain.CurrentDomain.BaseDirectory + "index.html");
         }
 
-        public void CancelJoin(RegisterInfo user)
+        public void CancelJoin(UserInfo user)
         {
-            //TODO:Check if user token is valid;
-            //TODO:Ensure player is actually in game.
-
-            //SetStatus(OK);
+            if (users.ContainsKey(user.UserToken))
+            {
+                if (InGame(user.UserToken, (ICollection<Game>) pendingGames))
+                {
+                    Game g;
+                    if(pendingGames.TryDequeue(out g))
+                    {
+                        SetStatus(OK);
+                        return;
+                    }
+                }
+            }
+            SetStatus(Forbidden);
+            return;
         }
 
-        public GameStatus GameStatus(int id)
+        public IDictionary<string, object> GameStatus(int id, string brief)
         {
-            throw new NotImplementedException();
+            Dictionary<string, object> data = new Dictionary<string, object>();
+            brief = brief.ToLower();
+            Game g = GetGame(id);
+            if (g != null)
+            {
+                if (brief.Equals("yes"))
+                {
+                    data.Add("GameState", g.GameState.ToString());
+                    data.Add("Board", g.Board.ToString());
+                    data.Add("TimeLimit", g.TimeLimit);
+                    return data;
+                }
+                else
+                {
+                    data.Add("GameState", g.GameState.ToString());
+                    data.Add("Board", g.Board.ToString());
+                    data.Add("TimeLimit", g.TimeLimit);
+                    return data;
+                }
+            }
+            else
+            {
+                SetStatus(Forbidden);
+                return null;
+            }
+            
+        }
+
+        private Game GetGame(int id)
+        {
+            Game g;
+            return SearchForGame(id, (ICollection<Game>)pendingGames, out g) ? g : SearchForGame(id, (ICollection<Game>)activeGames, out g) ? g : SearchForGame(id, (ICollection<Game>)completedGames, out g) ? g : null;
+        }
+
+        private bool SearchForGame(int id, ICollection<Game> games, out Game game)
+        {
+            foreach (Game g in games)
+            {
+                if (g.ID.Equals(id.ToString()))
+                {
+                    game = g;
+                    return true;
+                }
+            }
+            game = null;
+            return false;
         }
 
         public GameInfo Join(JoinInfo user)
         {
-            //TODO:Check if user token is valid in the database.
-            //TODO:Check if user is currently in a game.
-            //TODO:If handle game creation/joining logic.
-            //TODO:Calculate average game time.
-            GameInfo info = new GameInfo();
-            info.GameID = "10"; //TODO: Change to the actual game ID.
-            return info;
+            if(!string.IsNullOrEmpty(user.UserToken) && users.ContainsKey(user.UserToken) && user.TimeLimit>5 && user.TimeLimit < 120)
+            {
+                if(!InGame(user.UserToken, (ICollection<Game>) activeGames) && !InGame(user.UserToken, (ICollection<Game>) pendingGames))
+                {
+                    if (pendingGames.IsEmpty)
+                    {
+                        Game g = new Game();
+                        g.PlayerOne = user;
+                        g.ID = activeGames.Count + completedGames.Count + pendingGames.Count + 1 + "";
+                        g.GameState = Game.Status.pending;
+                        pendingGames.Enqueue(g);
+                        SetStatus(Created);
+                        return new GameInfo() { GameID = g.ID };
+                    } else
+                    {
+                        Game g;
+                        if(pendingGames.TryDequeue(out g))
+                        {
+                            g.PlayerTwo = user;
+                            activeGames.Add(g);
+                            g.TimeLimit = (g.PlayerOne.TimeLimit + user.TimeLimit) / 2;
+                            g.Board = new BoggleBoard();
+                            g.GameState = Game.Status.active;
+                            SetStatus(Accepted);
+                            return new GameInfo() { GameID = g.ID };
+                        }
+                    }
+                }
+                SetStatus(Conflict);
+                return null;
+            }
+            SetStatus(Forbidden);
+            return null;
         }
 
-        public ScoreInfo PlayWord(int id, PlayInfo user)
+        private bool InGame(string userToken, ICollection<Game> gameBag)
         {
-            //TODO:Ensure word played is not null or empty after being trimmed.
-            //TODO:Ensure id is valid
-            //TODO:Ensure user is actually in the specified game.
-            //TODO:Check if the game is currently active.
-            //TODO:Reply with score data.
-            return null; //TODO:Change
+            foreach(Game g in gameBag)
+            {
+                if(g.PlayerOne.UserToken.Equals(userToken) || g.PlayerTwo.UserToken.Equals(userToken))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public ScoreInfo PlayWord(int id, PlayInfo play)
+        {
+            if (!string.IsNullOrEmpty(play.Word.Trim()))
+            {
+                foreach(Game g in activeGames)
+                {
+                    if (g.ID.Equals(id.ToString()))
+                    {
+                        int score = g.Board.CanBeFormed(play.Word) ? 1 : -1;
+                        if (play.UserToken.Equals(g.PlayerOne.UserToken))
+                        {
+                            g.PlayerOneWords.Add(play.Word, score);
+                        } else if (play.UserToken.Equals(g.PlayerTwo.UserToken))
+                        {
+                            g.PlayerTwoWords.Add(play.Word, score);
+                        } else
+                        {
+                            SetStatus(Forbidden);
+                            return null;
+                        }
+                        SetStatus(OK);
+                        return new ScoreInfo() { Score = score };
+                    }
+                }
+                SetStatus(Forbidden);
+                return null;
+            }
+            SetStatus(Forbidden);
+            return null;
         }
 
         public UserInfo Register(RegisterInfo user)
@@ -73,9 +194,10 @@ namespace Boggle
                 SetStatus(Forbidden);
                 return null;
             }
-            //TODO: Store user and usertoken.
             UserInfo t = new UserInfo();
             t.UserToken = Guid.NewGuid().ToString();
+            users.TryAdd(t.UserToken, user.Nickname);
+            SetStatus(Created);
             return t;
         }
     }

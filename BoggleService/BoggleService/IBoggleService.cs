@@ -23,12 +23,12 @@ namespace Boggle
         GameInfo Join(JoinInfo user);
 
         [WebInvoke(Method = "PUT", UriTemplate = "/games")]
-        void CancelJoin(RegisterInfo user);
+        void CancelJoin(UserInfo user);
 
         [WebInvoke(Method = "PUT", UriTemplate = "/games/{id}")]
-        ScoreInfo PlayWord(int id, PlayInfo user);
+        ScoreInfo PlayWord(int id, PlayInfo play);
 
-        [WebGet(UriTemplate = "/games/{id}")]
-        IDictionary<string, object> GameStatus(int id);
+        [WebGet(UriTemplate = "/games/{id}?Brief={brief}")]
+        IDictionary<string, object> GameStatus(int id, string brief);
     }
 }
