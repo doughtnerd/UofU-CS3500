@@ -71,8 +71,8 @@
             this.gameBox = new System.Windows.Forms.GroupBox();
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.registrationToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.joiningAGameToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.playingToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -354,51 +354,51 @@
             // timeLeftLabel
             // 
             this.timeLeftLabel.Anchor = System.Windows.Forms.AnchorStyles.Top;
-            this.timeLeftLabel.AutoSize = true;
-            this.timeLeftLabel.Location = new System.Drawing.Point(142, 31);
+            this.timeLeftLabel.Location = new System.Drawing.Point(104, 31);
             this.timeLeftLabel.Name = "timeLeftLabel";
-            this.timeLeftLabel.Size = new System.Drawing.Size(51, 13);
+            this.timeLeftLabel.Size = new System.Drawing.Size(143, 13);
             this.timeLeftLabel.TabIndex = 100;
             this.timeLeftLabel.Text = "Time Left";
+            this.timeLeftLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // timeLeft
             // 
             this.timeLeft.Anchor = System.Windows.Forms.AnchorStyles.Top;
-            this.timeLeft.AutoSize = true;
-            this.timeLeft.Location = new System.Drawing.Point(157, 54);
+            this.timeLeft.Location = new System.Drawing.Point(104, 54);
             this.timeLeft.Name = "timeLeft";
-            this.timeLeft.Size = new System.Drawing.Size(26, 13);
+            this.timeLeft.Size = new System.Drawing.Size(143, 13);
             this.timeLeft.TabIndex = 4;
             this.timeLeft.Text = "time";
+            this.timeLeft.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // player2Label
             // 
             this.player2Label.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.player2Label.AutoSize = true;
-            this.player2Label.Location = new System.Drawing.Point(293, 31);
+            this.player2Label.Location = new System.Drawing.Point(261, 31);
             this.player2Label.Name = "player2Label";
-            this.player2Label.Size = new System.Drawing.Size(45, 13);
+            this.player2Label.Size = new System.Drawing.Size(89, 13);
             this.player2Label.TabIndex = 2;
             this.player2Label.Text = "Player 2";
+            this.player2Label.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // player1Score
             // 
-            this.player1Score.AutoSize = true;
-            this.player1Score.Location = new System.Drawing.Point(12, 54);
+            this.player1Score.Location = new System.Drawing.Point(3, 54);
             this.player1Score.Name = "player1Score";
-            this.player1Score.Size = new System.Drawing.Size(33, 13);
+            this.player1Score.Size = new System.Drawing.Size(89, 13);
             this.player1Score.TabIndex = 1;
             this.player1Score.Text = "score";
+            this.player1Score.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // player2Score
             // 
             this.player2Score.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.player2Score.AutoSize = true;
-            this.player2Score.Location = new System.Drawing.Point(305, 54);
+            this.player2Score.Location = new System.Drawing.Point(261, 54);
             this.player2Score.Name = "player2Score";
-            this.player2Score.Size = new System.Drawing.Size(33, 13);
+            this.player2Score.Size = new System.Drawing.Size(89, 13);
             this.player2Score.TabIndex = 0;
             this.player2Score.Text = "score";
+            this.player2Score.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // playerOneWords
             // 
@@ -428,7 +428,7 @@
             this.exitGame.TabIndex = 122;
             this.exitGame.Text = "Exit Game";
             this.exitGame.UseVisualStyleBackColor = true;
-            this.exitGame.Click += new System.EventHandler(this.exitGameToolStripMenuItem_Click);
+            this.exitGame.Click += new System.EventHandler(this.ExitGameButton_Click);
             // 
             // game
             // 
@@ -456,22 +456,22 @@
             // 
             // gameStatusLabel
             // 
-            this.gameStatusLabel.AutoSize = true;
             this.gameStatusLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.gameStatusLabel.Location = new System.Drawing.Point(108, 9);
+            this.gameStatusLabel.Location = new System.Drawing.Point(0, 9);
             this.gameStatusLabel.Name = "gameStatusLabel";
-            this.gameStatusLabel.Size = new System.Drawing.Size(83, 13);
+            this.gameStatusLabel.Size = new System.Drawing.Size(353, 13);
             this.gameStatusLabel.TabIndex = 128;
-            this.gameStatusLabel.Text = "Game Status:";
+            this.gameStatusLabel.Text = "Game Status: ";
+            this.gameStatusLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // player1Label
             // 
-            this.player1Label.AutoSize = true;
-            this.player1Label.Location = new System.Drawing.Point(10, 31);
+            this.player1Label.Location = new System.Drawing.Point(3, 31);
             this.player1Label.Name = "player1Label";
-            this.player1Label.Size = new System.Drawing.Size(45, 13);
+            this.player1Label.Size = new System.Drawing.Size(89, 13);
             this.player1Label.TabIndex = 127;
             this.player1Label.Text = "Player 1";
+            this.player1Label.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // gridPanel
             // 
@@ -520,9 +520,24 @@
             this.gameLengthEntry.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.gameLengthEntry.Location = new System.Drawing.Point(77, 97);
+            this.gameLengthEntry.Maximum = new decimal(new int[] {
+            120,
+            0,
+            0,
+            0});
+            this.gameLengthEntry.Minimum = new decimal(new int[] {
+            5,
+            0,
+            0,
+            0});
             this.gameLengthEntry.Name = "gameLengthEntry";
             this.gameLengthEntry.Size = new System.Drawing.Size(252, 20);
             this.gameLengthEntry.TabIndex = 121;
+            this.gameLengthEntry.Value = new decimal(new int[] {
+            5,
+            0,
+            0,
+            0});
             // 
             // setupBox
             // 
@@ -563,6 +578,13 @@
             this.fileToolStripMenuItem.Size = new System.Drawing.Size(37, 20);
             this.fileToolStripMenuItem.Text = "File";
             // 
+            // exitToolStripMenuItem
+            // 
+            this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
+            this.exitToolStripMenuItem.Size = new System.Drawing.Size(92, 22);
+            this.exitToolStripMenuItem.Text = "&Exit";
+            this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
+            // 
             // helpToolStripMenuItem
             // 
             this.helpToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -572,13 +594,6 @@
             this.helpToolStripMenuItem.Name = "helpToolStripMenuItem";
             this.helpToolStripMenuItem.Size = new System.Drawing.Size(44, 20);
             this.helpToolStripMenuItem.Text = "Help";
-            // 
-            // exitToolStripMenuItem
-            // 
-            this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-            this.exitToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
-            this.exitToolStripMenuItem.Text = "&Exit";
-            this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
             // 
             // registrationToolStripMenuItem
             // 

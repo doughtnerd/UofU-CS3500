@@ -83,11 +83,6 @@ namespace BoggleClient
         void SetRegistrationActive(bool enabled);
 
         /// <summary>
-        /// Whether or not the main menu is enabled
-        /// </summary>
-        void SetMainMenuEnabled(bool enabled);
-
-        /// <summary>
         /// Whether or not the game view is enabled.
         /// </summary>
         /// <param name="enabled"></param>

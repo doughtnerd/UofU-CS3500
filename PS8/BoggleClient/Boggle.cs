@@ -83,17 +83,12 @@ namespace BoggleClient
             }
         }
 
-        public void SetMainMenuEnabled(bool enabled)
-        {
-            this.mainMenu.Visible = enabled;
-        }
-
         public void SetGameViewEnabled(bool enabled)
         {
             this.game.Enabled = enabled;
         }
 
-        private void exitGameToolStripMenuItem_Click(object sender, EventArgs e)
+        private void ExitGameButton_Click(object sender, EventArgs e)
         {
             ExitGameEvent?.Invoke();
         }
@@ -131,7 +126,6 @@ namespace BoggleClient
 
         public void SetGameBoard(string s)
         {
-            int i = 0;
             this.boardLabel1.Text = s[0].ToString();
             this.boardLabel2.Text = s[1].ToString();
             this.boardLabel3.Text = s[2].ToString();
