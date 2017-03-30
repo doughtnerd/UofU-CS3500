@@ -5,18 +5,16 @@ using System.Dynamic;
 using System.IO;
 using System.Net;
 using System.ServiceModel.Web;
-using static Boggle.DataModels;
 using static System.Net.HttpStatusCode;
 
 namespace Boggle
 {
     public class BoggleService : IBoggleService
     {
-        private static ConcurrentDictionary<string, string> users = new ConcurrentDictionary<string, string>();
-        private static ConcurrentQueue<Game> pendingGames = new ConcurrentQueue<Game>();
-        private static ConcurrentBag<Game> activeGames = new ConcurrentBag<Game>();
-        private static ConcurrentBag<Game> completedGames = new ConcurrentBag<Game>();
-        
+        private static readonly ConcurrentDictionary<string, string> users = new ConcurrentDictionary<string, string>();
+        private static readonly ConcurrentQueue<Game> pendingGames = new ConcurrentQueue<Game>();
+        private static readonly ConcurrentBag<Game> activeGames = new ConcurrentBag<Game>();
+        private static readonly ConcurrentBag<Game> completedGames = new ConcurrentBag<Game>();
 
         /// <summary>
         /// The most recent call to SetStatus determines the response code used when
@@ -43,10 +41,10 @@ namespace Boggle
         {
             if (users.ContainsKey(user.UserToken))
             {
-                if (InGame(user.UserToken, (ICollection<Game>) pendingGames))
+                if (InGame(user.UserToken, (ICollection<Game>)pendingGames))
                 {
                     Game g;
-                    if(pendingGames.TryDequeue(out g))
+                    if (pendingGames.TryDequeue(out g))
                     {
                         SetStatus(OK);
                         return;
@@ -84,7 +82,6 @@ namespace Boggle
                 SetStatus(Forbidden);
                 return null;
             }
-            
         }
 
         private Game GetGame(int id)
@@ -109,9 +106,9 @@ namespace Boggle
 
         public GameInfo Join(JoinInfo user)
         {
-            if(!string.IsNullOrEmpty(user.UserToken) && users.ContainsKey(user.UserToken) && user.TimeLimit>5 && user.TimeLimit < 120)
+            if (!string.IsNullOrEmpty(user.UserToken) && users.ContainsKey(user.UserToken) && user.TimeLimit > 5 && user.TimeLimit < 120)
             {
-                if(!InGame(user.UserToken, (ICollection<Game>) activeGames) && !InGame(user.UserToken, (ICollection<Game>) pendingGames))
+                if (!InGame(user.UserToken, (ICollection<Game>)activeGames) && !InGame(user.UserToken, (ICollection<Game>)pendingGames))
                 {
                     if (pendingGames.IsEmpty)
                     {
@@ -122,10 +119,11 @@ namespace Boggle
                         pendingGames.Enqueue(g);
                         SetStatus(Created);
                         return new GameInfo() { GameID = g.ID };
-                    } else
+                    }
+                    else
                     {
                         Game g;
-                        if(pendingGames.TryDequeue(out g))
+                        if (pendingGames.TryDequeue(out g))
                         {
                             g.PlayerTwo = user;
                             activeGames.Add(g);
@@ -160,7 +158,7 @@ namespace Boggle
         {
             if (!string.IsNullOrEmpty(play.Word.Trim()))
             {
-                foreach(Game g in activeGames)
+                foreach (Game g in activeGames)
                 {
                     if (g.ID.Equals(id.ToString()))
                     {
@@ -168,10 +166,12 @@ namespace Boggle
                         if (play.UserToken.Equals(g.PlayerOne.UserToken))
                         {
                             g.PlayerOneWords.Add(play.Word, score);
-                        } else if (play.UserToken.Equals(g.PlayerTwo.UserToken))
+                        }
+                        else if (play.UserToken.Equals(g.PlayerTwo.UserToken))
                         {
                             g.PlayerTwoWords.Add(play.Word, score);
-                        } else
+                        }
+                        else
                         {
                             SetStatus(Forbidden);
                             return null;
@@ -189,7 +189,7 @@ namespace Boggle
 
         public UserInfo Register(RegisterInfo user)
         {
-            if (string.IsNullOrEmpty(user.Nickname))
+            if (user.Nickname == null || user.Nickname.Trim().Length == 0)
             {
                 SetStatus(Forbidden);
                 return null;

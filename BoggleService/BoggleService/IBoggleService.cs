@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.ServiceModel;
 using System.ServiceModel.Web;
-using static Boggle.DataModels;
 
 namespace Boggle
 {
