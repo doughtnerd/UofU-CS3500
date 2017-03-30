@@ -132,7 +132,7 @@ namespace Boggle
                         g.ID = activeGames.Count + completedGames.Count + pendingGames.Count + 1 + "";
                         g.GameState = Game.Status.pending;
                         pendingGames.Enqueue(g);
-                        SetStatus(Created);
+                        SetStatus(Accepted);
                         return new GameInfo() { GameID = g.ID };
                     }
                     else
@@ -145,7 +145,7 @@ namespace Boggle
                             g.TimeLimit = (g.PlayerOne.TimeLimit + user.TimeLimit) / 2;
                             g.Board = new BoggleBoard();
                             g.GameState = Game.Status.active;
-                            SetStatus(Accepted);
+                            SetStatus(Created);
                             return new GameInfo() { GameID = g.ID };
                         }
                     }
