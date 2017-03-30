@@ -41,7 +41,7 @@ namespace Boggle
         {
             if (users.ContainsKey(user.UserToken))
             {
-                if (InGame(user.UserToken, (ICollection<Game>)pendingGames))
+                if (InGame(user.UserToken, pendingGames))
                 {
                     Game g;
                     if (pendingGames.TryDequeue(out g))
