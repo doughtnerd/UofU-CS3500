@@ -55,11 +55,11 @@ namespace Boggle
             return;
         }
 
-        public IDictionary<string, object> GameStatus(int id, string brief)
+        public IDictionary<string, object> GameStatus(string id, string brief)
         {
             Dictionary<string, object> data = new Dictionary<string, object>();
             brief = brief.ToLower();
-            Game g = GetGame(id);
+            Game g = GetGame(int.Parse(id));
             if (g != null)
             {
                 if (brief.Equals("yes"))
@@ -154,13 +154,13 @@ namespace Boggle
             return false;
         }
 
-        public ScoreInfo PlayWord(int id, PlayInfo play)
+        public ScoreInfo PlayWord(string id, PlayInfo play)
         {
             if (!string.IsNullOrEmpty(play.Word.Trim()))
             {
                 foreach (Game g in activeGames)
                 {
-                    if (g.ID.Equals(id.ToString()))
+                    if (g.ID.Equals(id))
                     {
                         int score = g.Board.CanBeFormed(play.Word) ? 1 : -1;
                         if (play.UserToken.Equals(g.PlayerOne.UserToken))
@@ -196,6 +196,7 @@ namespace Boggle
             }
             UserInfo t = new UserInfo();
             t.UserToken = Guid.NewGuid().ToString();
+            Console.WriteLine(t.UserToken);
             users.TryAdd(t.UserToken, user.Nickname);
             SetStatus(Created);
             return t;

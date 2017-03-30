@@ -25,9 +25,9 @@ namespace Boggle
         void CancelJoin(UserInfo user);
 
         [WebInvoke(Method = "PUT", UriTemplate = "/games/{id}")]
-        ScoreInfo PlayWord(int id, PlayInfo play);
+        ScoreInfo PlayWord(string id, PlayInfo play);
 
         [WebGet(UriTemplate = "/games/{id}?Brief={brief}")]
-        IDictionary<string, object> GameStatus(int id, string brief);
+        IDictionary<string, object> GameStatus(string id, string brief);
     }
 }
