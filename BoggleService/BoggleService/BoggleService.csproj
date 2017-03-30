@@ -127,7 +127,9 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="index.html" />
-    <Content Include="dictionary.txt" />
+    <Content Include="dictionary.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="BoggleService.svc" />
     <Content Include="Web.config">
       <SubType>Designer</SubType>
@@ -138,6 +140,7 @@
     <Compile Include="BoggleService.svc.cs">
       <DependentUpon>BoggleService.svc</DependentUpon>
     </Compile>
+    <Compile Include="DataModel.cs" />
     <Compile Include="IBoggleService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

@@ -1,8 +1,14 @@
-﻿using System;
+﻿//Nathan Reeves 3/30/17
+//These tests achieve close to full code coverage.
+//I was unable to UnitTest correct words, but they were tested through our Boggle client
+using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using static System.Net.HttpStatusCode;
 using System.Diagnostics;
 using Newtonsoft.Json;
+using Boggle;
+using System.Collections.Generic;
+using System.IO;
 
 namespace Boggle
 {
@@ -65,22 +71,114 @@ namespace Boggle
 
         private RestTestClient client = new RestTestClient("http://localhost:60000/BoggleService.svc/");
 
-        /// <summary>
-        /// Note that DoGetAsync (and the other similar methods) returns a Response object, which contains
-        /// the response Stats and the deserialized JSON response (if any).  See RestTestClient.cs
-        /// for details.
-        /// </summary>
+        //test user create
         [TestMethod]
         public void TestMethod1()
         {
-            Response r = client.DoGetAsync("word?index={0}", "-5").Result;
-            Assert.AreEqual(Forbidden, r.Status);
+            UserInfo user = new UserInfo();
+            user.Nickname = "Nathan";
+            Response r = client.DoPostAsync("users", user).Result;
+            Assert.AreEqual(r.Status.ToString(), "Created");
+            Assert.AreEqual(r.Data.Nickname.Value, user.Nickname);
+            //null nickname test
+            user = new UserInfo();
+            user.UserToken = Guid.NewGuid().ToString();
+            user.Nickname = null;
+            r = client.DoPostAsync("users", user).Result;
+            Assert.AreEqual(r.Status, BadRequest);
 
-            r = client.DoGetAsync("word?index={0}", "5").Result;
-            Assert.AreEqual(OK, r.Status);
 
-            string word = (string) r.Data;
-            Assert.AreEqual("AAL", word);
+        }
+        //tests join game 
+        [TestMethod]
+        public void TestMethod2()
+        {
+            //created status
+            UserInfo user = new UserInfo();
+            user.Nickname = "Nathan";
+            Response r = client.DoPostAsync("users", user).Result;
+            Assert.AreEqual(r.Status.ToString(), "Created");
+            Assert.AreEqual(r.Data.Nickname.Value, user.Nickname);
+
+            //null nickname test
+            user = new UserInfo();
+            r = client.DoPostAsync("users", user).Result;
+            Assert.AreEqual(r.Status, BadRequest);
+
+
+        }
+        //creates a game with two players and tests it
+        [TestMethod]
+        public void TestMethod3()
+        {
+            UserInfo user = new UserInfo();
+            user.Nickname = "Nathan";
+            user.TimeLimit = 60;
+            //create user save token
+            user.UserToken  = client.DoPostAsync("users", user).Result.Data.UserToken.Value;
+
+            //join game succeed
+            Response r = client.DoPostAsync("games", user).Result;
+            Assert.AreEqual(r.Data.Player1.Nickname.Value, "Nathan");
+            Assert.AreEqual(r.Data.GameID.Value, 1);
+
+            //join game cancel
+            Response cancel = client.DoPutAsync(user, "games").Result;
+            Assert.AreEqual(cancel.Status, OK);
+            Assert.AreEqual(r.Data.GameID.Value, 1);
+
+            //join game succeed after cancel
+            r = client.DoPostAsync("games", user).Result;
+            Assert.AreEqual(r.Data.Player1.Nickname.Value, "Nathan");
+            Assert.AreEqual(r.Data.GameID.Value, 1);
+
+            //join game fail
+            UserInfo userfail = new UserInfo();
+            userfail.UserToken = Guid.NewGuid().ToString();
+            Response fail = client.DoPostAsync("games", userfail).Result;
+            Assert.AreEqual(fail.Status, Forbidden);
+
+            //get game
+            Response r2 = client.DoGetAsync("games/{0}", "1").Result;
+            Assert.AreEqual(r2.Data.GameID.Value, 1);
+            Assert.AreEqual(r2.Data.GameState.Value, "pending");
+
+            //Game will be active when another player joins
+            UserInfo user2 = new UserInfo();
+            user2.Nickname = "Player2";
+            user2.TimeLimit = 60;
+            //create user save token
+            Response p1token = client.DoPostAsync("users", user2).Result;
+            //response status: created
+            Assert.AreEqual(p1token.Status.ToString(), "Created");
+            user2.UserToken = p1token.Data.UserToken.Value;
+
+            //join second user
+            Response join = client.DoPostAsync("games", user2).Result;
+            Assert.AreEqual(join.Data.GameID.Value, 1);
+            Assert.AreEqual(join.Data.Player1.Nickname.Value, "Nathan");
+            Assert.AreEqual(join.Data.Player2.Nickname.Value, "Player2");
+            Assert.AreEqual(join.Data.GameState.Value, "active");
+
+            //get game active
+            Response active = client.DoGetAsync("games/{0}", "1").Result;
+            Assert.AreEqual(active.Data.GameState.Value, "active");
+
+            //word post test
+            user.Word = "plll"; //non word gives score 0
+            string url = string.Format("games/{0}", "1");
+            Response w = client.DoPutAsync(user, url).Result;           
+            Assert.AreEqual(w.Data.Score.Value, 0);
+
+            //word post non-matching token
+            UserInfo usertokenfail = new UserInfo();
+            usertokenfail.UserToken = Guid.NewGuid().ToString();
+            user.Word = "plll"; 
+            Response wordfail = client.DoPutAsync(usertokenfail, url).Result;
+            Assert.AreEqual(wordfail.Status, BadRequest);
+
+
+
         }
     }
 }
