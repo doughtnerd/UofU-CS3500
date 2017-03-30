@@ -58,10 +58,11 @@ namespace Boggle
         public IDictionary<string, object> GameStatus(string id, string brief)
         {
             Dictionary<string, object> data = new Dictionary<string, object>();
-            brief = brief.ToLower();
+            brief = string.IsNullOrEmpty(brief) ? "no" : brief.ToLower();
             Game g = GetGame(int.Parse(id));
             if (g != null)
             {
+                //TODO: Need to handle checking if the game is pending or not. If it is, this information will be unavailable.
                 if (brief.Equals("yes"))
                 {
                     data.Add("GameState", g.GameState.ToString());
@@ -87,10 +88,24 @@ namespace Boggle
         private Game GetGame(int id)
         {
             Game g;
-            return SearchForGame(id, (ICollection<Game>)pendingGames, out g) ? g : SearchForGame(id, (ICollection<Game>)activeGames, out g) ? g : SearchForGame(id, (ICollection<Game>)completedGames, out g) ? g : null;
+            return SearchForGame(id, pendingGames, out g) ? g : SearchForGame(id, activeGames, out g) ? g : SearchForGame(id, completedGames, out g) ? g : null;
         }
 
-        private bool SearchForGame(int id, ICollection<Game> games, out Game game)
+        private bool SearchForGame(int id, ConcurrentQueue<Game> games, out Game game)
+        {
+            foreach (Game g in games)
+            {
+                if (g.ID.Equals(id.ToString()))
+                {
+                    game = g;
+                    return true;
+                }
+            }
+            game = null;
+            return false;
+        }
+
+        private bool SearchForGame(int id, ConcurrentBag<Game> games, out Game game)
         {
             foreach (Game g in games)
             {
@@ -108,7 +123,7 @@ namespace Boggle
         {
             if (!string.IsNullOrEmpty(user.UserToken) && users.ContainsKey(user.UserToken) && user.TimeLimit > 5 && user.TimeLimit < 120)
             {
-                if (!InGame(user.UserToken, (ICollection<Game>)activeGames) && !InGame(user.UserToken, (ICollection<Game>)pendingGames))
+                if (!InGame(user.UserToken, pendingGames))
                 {
                     if (pendingGames.IsEmpty)
                     {
@@ -142,11 +157,23 @@ namespace Boggle
             return null;
         }
 
+        private bool InGame(string userToken, ConcurrentQueue<Game> pending)
+        {
+            foreach(Game g in pending)
+            {
+                if ((g.PlayerOne !=null && g.PlayerOne.UserToken.Equals(userToken)) || (g.PlayerTwo !=null && g.PlayerTwo.UserToken.Equals(userToken)))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         private bool InGame(string userToken, ICollection<Game> gameBag)
         {
             foreach(Game g in gameBag)
             {
-                if(g.PlayerOne.UserToken.Equals(userToken) || g.PlayerTwo.UserToken.Equals(userToken))
+                if ((g.PlayerOne != null && g.PlayerOne.UserToken.Equals(userToken)) || (g.PlayerTwo != null && g.PlayerTwo.UserToken.Equals(userToken)))
                 {
                     return true;
                 }
