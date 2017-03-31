@@ -38,6 +38,10 @@ namespace Boggle
             return File.OpenRead(AppDomain.CurrentDomain.BaseDirectory + "index.html");
         }
 
+        /// <summary>
+        /// Handles cancelling a user's registration for a pending game.
+        /// </summary>
+        /// <param name="user"></param>
         public void CancelJoin(UserInfo user)
         {
             if (users.ContainsKey(user.UserToken))
@@ -56,6 +60,12 @@ namespace Boggle
             return;
         }
 
+        /// <summary>
+        /// Handles processing and returning of game status data.
+        /// </summary>
+        /// <param name="id">Id of the game to retrieve data for.</param>
+        /// <param name="brief">Whether or not the data should be brief.</param>
+        /// <returns>Desired status info as available for the game.</returns>
         public StatusInfo GameStatus(string id, string brief)
         {
             brief = string.IsNullOrEmpty(brief) ? "no" : brief.ToLower();
@@ -116,6 +126,7 @@ namespace Boggle
             foreach(KeyValuePair<string, int> pair in dic)
             {
                 arr[i] = new WordInfo() { Word = pair.Key, Score = pair.Value };
+                i++;
             }
             return arr;
         }
@@ -150,20 +161,11 @@ namespace Boggle
             return false;
         }
 
-        private bool SearchForGame(int id, ConcurrentDictionary<string, Game> games, out Game game)
-        {
-            foreach (Game g in games.Values)
-            {
-                if (g.ID.Equals(id.ToString()))
-                {
-                    game = g;
-                    return true;
-                }
-            }
-            game = null;
-            return false;
-        }
-
+        /// <summary>
+        /// Handles joining a pending Boggle game.
+        /// </summary>
+        /// <param name="user">Data detailing the user token and the time of the match</param>
+        /// <returns>Data containing the game's ID.</returns>
         public GameInfo Join(JoinInfo user)
         {
             if (!string.IsNullOrEmpty(user.UserToken) && users.ContainsKey(user.UserToken) && user.TimeLimit >= 5 && user.TimeLimit <= 120)
@@ -245,6 +247,12 @@ namespace Boggle
             return false;
         }
 
+        /// <summary>
+        /// Handles playing a word to the boggle game
+        /// </summary>
+        /// <param name="id">ID of the game to submit a word to</param>
+        /// <param name="play">Info detailing what player played what word.</param>
+        /// <returns>Data containing the score that word had.</returns>
         public ScoreInfo PlayWord(string id, PlayInfo play)
         {
             if (!string.IsNullOrEmpty(play.Word.Trim()))
@@ -256,7 +264,7 @@ namespace Boggle
                     {
                         if (g.ID.Equals(id))
                         {
-                            int score = g.Board.CanBeFormed(play.Word) ? 1 : -1;
+                            int score = (g.PlayerOneWords.ContainsKey(play.Word) || g.PlayerTwoWords.ContainsKey(play.Word)) ? 0 : g.Board.CanBeFormed(play.Word) ? 1 : -1;
                             if (play.UserToken.Equals(g.PlayerOne.UserToken))
                             {
                                 g.PlayerOneWords.Add(play.Word, score);
@@ -282,6 +290,11 @@ namespace Boggle
             return null;
         }
 
+        /// <summary>
+        /// Registers the user into the database
+        /// </summary>
+        /// <param name="user">Required registration info.</param>
+        /// <returns>The user's user token.</returns>
         public UserInfo Register(RegisterInfo user)
         {
             if (user.Nickname == null || user.Nickname.Trim().Length == 0)

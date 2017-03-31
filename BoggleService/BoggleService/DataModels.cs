@@ -68,7 +68,7 @@ namespace Boggle
         public int TimeLimit { get; set; }
 
         [DataMember(EmitDefaultValue = false)]
-        public int TimeLeft { get; set; }
+        public object TimeLeft { get; set; }
 
         [DataMember(EmitDefaultValue = false)]
         public PlayerInfo Player1 { get; set; }
