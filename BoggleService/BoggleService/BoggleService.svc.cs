@@ -3,6 +3,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Data.SqlClient;
 using System.Dynamic;
 using System.IO;
 using System.Net;
@@ -324,9 +325,21 @@ namespace Boggle
             }
             UserInfo t = new UserInfo();
             t.UserToken = Guid.NewGuid().ToString();
-            Console.WriteLine(t.UserToken);
             users.TryAdd(t.UserToken, user.Nickname);
-            SetStatus(Created);
+            SqlConnection conn;
+            SqlTransaction trans = SQLUtils.BeginTransaction(connectionString, out conn);
+            SqlCommand command = new SqlCommand("insert into Users (UserToken, Nickname) values (@token, @name)", conn, trans);
+            SQLUtils.AddWithValue(command, SQLUtils.BuildMappings("@token", t.UserToken, "@name", user.Nickname));
+            SQLUtils.ExecuteNonQuery(conn, trans, command, (n) => {
+                if (n == 0)
+                {
+                    SetStatus(InternalServerError);
+                    t = null;
+                } else
+                {
+                    SetStatus(Created);
+                }
+            });
             return t;
         }
     }

@@ -9,7 +9,7 @@ namespace Boggle
     public class SQLUtils
     {
 
-        public SqlTransaction BeginTransaction(string connectionString, out SqlConnection connection)
+        public static SqlTransaction BeginTransaction(string connectionString, out SqlConnection connection)
         {
             SqlConnection conn = new SqlConnection(connectionString);
             conn.Open();
@@ -17,7 +17,7 @@ namespace Boggle
             return conn.BeginTransaction();
         }
 
-        public void ExecuteNonQuery(SqlConnection conn, SqlTransaction transaction, SqlCommand command, Action<int> callback)
+        public static void ExecuteNonQuery(SqlConnection conn, SqlTransaction transaction, SqlCommand command, Action<int> callback)
         {
             using (conn)
             {
@@ -28,6 +28,28 @@ namespace Boggle
                     transaction.Commit();
                 }
             }
+        }
+
+        public static void AddWithValue(SqlCommand command, IDictionary<string, string> mappings)
+        {
+            foreach(KeyValuePair<string,string> pair in mappings)
+            {
+                command.Parameters.AddWithValue(pair.Key, pair.Value);
+            }
+        }
+
+        public static IDictionary<string,string> BuildMappings(params string[] mappings)
+        {
+            IDictionary<string, string> dic = new Dictionary<string, string>();
+            if (mappings.Length % 2 != 0)
+            {
+                throw new ArgumentException("Mappings must be matched pairs");
+            }
+            for(int i = 0; i < mappings.Length-1; i+=2)
+            {
+                dic.Add(mappings[i], mappings[i + 1]);
+            }
+            return dic;
         }
     }
 }
