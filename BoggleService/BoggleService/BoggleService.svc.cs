@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Dynamic;
 using System.IO;
 using System.Net;
@@ -18,6 +19,8 @@ namespace Boggle
         private static readonly ConcurrentDictionary<string, Game> completedGames = new ConcurrentDictionary<string, Game>();
         private static readonly HashSet<string> dictionary;
 
+        private static string connectionString;
+
         static BoggleService()
         {
             dictionary = new HashSet<string>();
@@ -29,6 +32,7 @@ namespace Boggle
                     dictionary.Add(line.ToLower().Trim());
                 }
             }
+            connectionString = ConfigurationManager.ConnectionStrings["BoggleDB"].ConnectionString;
         }
 
         /// <summary>
