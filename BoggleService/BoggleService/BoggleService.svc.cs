@@ -121,7 +121,7 @@ namespace Boggle
 
         public GameInfo Join(JoinInfo user)
         {
-            if (!string.IsNullOrEmpty(user.UserToken) && users.ContainsKey(user.UserToken) && user.TimeLimit > 5 && user.TimeLimit < 120)
+            if (!string.IsNullOrEmpty(user.UserToken) && users.ContainsKey(user.UserToken) && user.TimeLimit >= 5 && user.TimeLimit <= 120)
             {
                 if (!InGame(user.UserToken, pendingGames))
                 {

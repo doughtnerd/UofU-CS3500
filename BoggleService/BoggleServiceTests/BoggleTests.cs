@@ -335,7 +335,7 @@ namespace Boggle
             Assert.AreEqual(Created, r.Status);
 
             data.Word = "word";
-            r = client.DoPutAsync(data, "games/" + "").Result;
+            r = client.DoPutAsync(data, "games" + "").Result;
             Assert.AreEqual(Forbidden, r.Status);
         }
 
