@@ -16,6 +16,20 @@ namespace Boggle
         private static readonly ConcurrentQueue<Game> pendingGames = new ConcurrentQueue<Game>();
         private static readonly ConcurrentDictionary<string, Game> activeGames = new ConcurrentDictionary<string, Game>();
         private static readonly ConcurrentDictionary<string, Game> completedGames = new ConcurrentDictionary<string, Game>();
+        private static readonly HashSet<string> dictionary;
+
+        static BoggleService()
+        {
+            dictionary = new HashSet<string>();
+            string line;
+            using (StreamReader file = new System.IO.StreamReader(AppDomain.CurrentDomain.BaseDirectory + "dictionary.txt"))
+            {
+                while ((line = file.ReadLine()) != null)
+                {
+                    dictionary.Add(line.ToLower().Trim());
+                }
+            }
+        }
 
         /// <summary>
         /// The most recent call to SetStatus determines the response code used when
@@ -255,7 +269,8 @@ namespace Boggle
         /// <returns>Data containing the score that word had.</returns>
         public ScoreInfo PlayWord(string id, PlayInfo play)
         {
-            if (!string.IsNullOrEmpty(play.Word.Trim()))
+            string word = play.Word.ToLower().Trim();
+            if (!string.IsNullOrEmpty(word))
             {
                 Game g;
                 if(activeGames.TryGetValue(id, out g))
@@ -264,14 +279,14 @@ namespace Boggle
                     {
                         if (g.ID.Equals(id))
                         {
-                            int score = (g.PlayerOneWords.ContainsKey(play.Word) || g.PlayerTwoWords.ContainsKey(play.Word)) ? 0 : g.Board.CanBeFormed(play.Word) ? 1 : -1;
+                            int score = (g.PlayerOneWords.ContainsKey(word) || g.PlayerTwoWords.ContainsKey(word)) ? 0 : g.Board.CanBeFormed(word) && dictionary.Contains(word) ? 1 : -1;
                             if (play.UserToken.Equals(g.PlayerOne.UserToken))
                             {
-                                g.PlayerOneWords.Add(play.Word, score);
+                                g.PlayerOneWords.Add(word, score);
                             }
                             else if (play.UserToken.Equals(g.PlayerTwo.UserToken))
                             {
-                                g.PlayerTwoWords.Add(play.Word, score);
+                                g.PlayerTwoWords.Add(word, score);
                             }
                             else
                             {
