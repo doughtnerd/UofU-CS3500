@@ -125,9 +125,22 @@ namespace Boggle
             {
                 if (!InGame(user.UserToken, pendingGames))
                 {
-                    if (pendingGames.IsEmpty)
+                    Game g;
+                    if(pendingGames.TryDequeue(out g))
                     {
-                        Game g = new Game();
+                        if (g.PlayerOne != null)
+                        {
+                            GameInfo info =  JoinAsPlayerTwo(user, g);
+                            activeGames.Add(g);
+                            return info;
+                        }
+                        else
+                        {
+                            return JoinAsPlayerOne(user, g);
+                        }
+                    } else
+                    {
+                        g = new Game();
                         g.PlayerOne = user;
                         g.ID = activeGames.Count + completedGames.Count + pendingGames.Count + 1 + "";
                         g.GameState = Game.Status.pending;
@@ -135,26 +148,31 @@ namespace Boggle
                         SetStatus(Accepted);
                         return new GameInfo() { GameID = g.ID };
                     }
-                    else
-                    {
-                        Game g;
-                        if (pendingGames.TryDequeue(out g))
-                        {
-                            g.PlayerTwo = user;
-                            activeGames.Add(g);
-                            g.TimeLimit = (g.PlayerOne.TimeLimit + user.TimeLimit) / 2;
-                            g.Board = new BoggleBoard();
-                            g.GameState = Game.Status.active;
-                            SetStatus(Created);
-                            return new GameInfo() { GameID = g.ID };
-                        }
-                    }
                 }
                 SetStatus(Conflict);
                 return null;
             }
             SetStatus(Forbidden);
             return null;
+        }
+
+        private GameInfo JoinAsPlayerTwo(JoinInfo user, Game g)
+        {
+            g.PlayerTwo = user;
+            g.TimeLimit = (g.PlayerOne.TimeLimit + user.TimeLimit) / 2;
+            g.Board = new BoggleBoard();
+            g.GameState = Game.Status.active;
+            SetStatus(Created);
+            return new GameInfo() { GameID = g.ID };
+        }
+
+        private GameInfo JoinAsPlayerOne(JoinInfo user, Game g)
+        {
+            g.PlayerOne = user;
+            g.ID = activeGames.Count + completedGames.Count + pendingGames.Count + 1 + "";
+            g.GameState = Game.Status.pending;
+            SetStatus(Accepted);
+            return new GameInfo() { GameID = g.ID };
         }
 
         private bool InGame(string userToken, ConcurrentQueue<Game> pending)
