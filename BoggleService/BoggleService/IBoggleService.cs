@@ -28,6 +28,6 @@ namespace Boggle
         ScoreInfo PlayWord(string id, PlayInfo play);
 
         [WebGet(UriTemplate = "/games/{id}?Brief={brief}")]
-        IDictionary<string, object> GameStatus(string id, string brief);
+        StatusInfo GameStatus(string id, string brief);
     }
 }
