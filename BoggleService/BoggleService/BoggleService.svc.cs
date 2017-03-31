@@ -201,7 +201,9 @@ namespace Boggle
 
         public ScoreInfo PlayWord(string id, PlayInfo play)
         {
-            if (!string.IsNullOrEmpty(play.Word.Trim()))
+            int result;
+            bool isInt = int.TryParse(id, out result);
+            if (!string.IsNullOrEmpty(play.Word.Trim()) && isInt && ((pendingGames.Count + activeGames.Count + completedGames.Count) <= result))
             {
                 foreach (Game g in activeGames)
                 {
@@ -225,7 +227,8 @@ namespace Boggle
                         return new ScoreInfo() { Score = score };
                     }
                 }
-                SetStatus(Forbidden);
+
+                SetStatus(Conflict);
                 return null;
             }
             SetStatus(Forbidden);
