@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Dynamic;
@@ -13,8 +14,8 @@ namespace Boggle
     {
         private static readonly ConcurrentDictionary<string, string> users = new ConcurrentDictionary<string, string>();
         private static readonly ConcurrentQueue<Game> pendingGames = new ConcurrentQueue<Game>();
-        private static readonly ConcurrentBag<Game> activeGames = new ConcurrentBag<Game>();
-        private static readonly ConcurrentBag<Game> completedGames = new ConcurrentBag<Game>();
+        private static readonly ConcurrentDictionary<string, Game> activeGames = new ConcurrentDictionary<string, Game>();
+        private static readonly ConcurrentDictionary<string, Game> completedGames = new ConcurrentDictionary<string, Game>();
 
         /// <summary>
         /// The most recent call to SetStatus determines the response code used when
@@ -55,27 +56,39 @@ namespace Boggle
             return;
         }
 
-        public IDictionary<string, object> GameStatus(string id, string brief)
+        public StatusInfo GameStatus(string id, string brief)
         {
-            Dictionary<string, object> data = new Dictionary<string, object>();
             brief = string.IsNullOrEmpty(brief) ? "no" : brief.ToLower();
-            Game g = GetGame(int.Parse(id));
+            Game g = GetGame(id);
             if (g != null)
             {
-                //TODO: Need to handle checking if the game is pending or not. If it is, this information will be unavailable.
-                if (brief.Equals("yes"))
+                if(g.GameState == Game.Status.pending)
                 {
-                    data.Add("GameState", g.GameState.ToString());
-                    data.Add("Board", g.Board.ToString());
-                    data.Add("TimeLimit", g.TimeLimit);
-                    return data;
-                }
-                else
+                    SetStatus(OK);
+                    return new StatusInfo() { GameState = "pending" };
+                } else
                 {
-                    data.Add("GameState", g.GameState.ToString());
-                    data.Add("Board", g.Board.ToString());
-                    data.Add("TimeLimit", g.TimeLimit);
-                    return data;
+                    CheckGameComplete(g);
+                    int timePassed = (int) (DateTime.Now - g.TimeStarted).TotalSeconds;
+                    return new StatusInfo()
+                    {
+                        GameState = g.GameState.ToString(),
+                        Board = g.Board.ToString(),
+                        TimeLimit = g.TimeLimit,
+                        TimeLeft = timePassed>=g.TimeLimit ? 0 : g.TimeLimit-timePassed,
+                        Player1 = new PlayerInfo
+                        {
+                            Nickname = users[g.PlayerOne.UserToken],
+                            Score = GetScore(g.PlayerOneWords),
+                            WordsPlayed = brief.Equals("no") ? CollectWordData(g.PlayerOneWords) : null
+                        },
+                        Player2 = new PlayerInfo
+                        {
+                            Nickname = users[g.PlayerTwo.UserToken],
+                            Score = GetScore(g.PlayerTwoWords),
+                            WordsPlayed = brief.Equals("no") ? CollectWordData(g.PlayerTwoWords) : null
+                        }
+                    };
                 }
             }
             else
@@ -85,17 +98,49 @@ namespace Boggle
             }
         }
 
-        private Game GetGame(int id)
+        private bool CheckGameComplete(Game g)
         {
-            Game g;
-            return SearchForGame(id, pendingGames, out g) ? g : SearchForGame(id, activeGames, out g) ? g : SearchForGame(id, completedGames, out g) ? g : null;
+            if ((DateTime.Now - g.TimeStarted).TotalSeconds >= g.TimeLimit)
+            {
+                g.GameState = Game.Status.completed;
+                completedGames.TryAdd(g.ID, g);
+                return true;
+            }
+            return false;
         }
 
-        private bool SearchForGame(int id, ConcurrentQueue<Game> games, out Game game)
+        private static WordInfo[] CollectWordData(IDictionary<string, int> dic)
+        {
+            WordInfo[] arr = new WordInfo[dic.Count];
+            int i = 0;
+            foreach(KeyValuePair<string, int> pair in dic)
+            {
+                arr[i] = new WordInfo() { Word = pair.Key, Score = pair.Value };
+            }
+            return arr;
+        }
+
+        private static int GetScore(IDictionary<string, int> dic)
+        {
+            int total = 0;
+            foreach (int i in dic.Values)
+            {
+                total += i;
+            }
+            return total;
+        }
+
+        private Game GetGame(string id)
+        {
+            Game g;
+            return SearchForGame(id, pendingGames, out g) ? g : activeGames.TryGetValue(id, out g) ? g : completedGames.TryGetValue(id, out g) ? g : null;
+        }
+
+        private bool SearchForGame(string id, ConcurrentQueue<Game> games, out Game game)
         {
             foreach (Game g in games)
             {
-                if (g.ID.Equals(id.ToString()))
+                if (g.ID.Equals(id))
                 {
                     game = g;
                     return true;
@@ -105,9 +150,9 @@ namespace Boggle
             return false;
         }
 
-        private bool SearchForGame(int id, ConcurrentBag<Game> games, out Game game)
+        private bool SearchForGame(int id, ConcurrentDictionary<string, Game> games, out Game game)
         {
-            foreach (Game g in games)
+            foreach (Game g in games.Values)
             {
                 if (g.ID.Equals(id.ToString()))
                 {
@@ -131,7 +176,8 @@ namespace Boggle
                         if (g.PlayerOne != null)
                         {
                             GameInfo info =  JoinAsPlayerTwo(user, g);
-                            activeGames.Add(g);
+                            activeGames.TryAdd(g.ID, g);
+                            g.Start();
                             return info;
                         }
                         else
@@ -203,26 +249,30 @@ namespace Boggle
         {
             if (!string.IsNullOrEmpty(play.Word.Trim()))
             {
-                foreach (Game g in activeGames)
+                Game g;
+                if(activeGames.TryGetValue(id, out g))
                 {
-                    if (g.ID.Equals(id))
+                    if (!CheckGameComplete(g))
                     {
-                        int score = g.Board.CanBeFormed(play.Word) ? 1 : -1;
-                        if (play.UserToken.Equals(g.PlayerOne.UserToken))
+                        if (g.ID.Equals(id))
                         {
-                            g.PlayerOneWords.Add(play.Word, score);
+                            int score = g.Board.CanBeFormed(play.Word) ? 1 : -1;
+                            if (play.UserToken.Equals(g.PlayerOne.UserToken))
+                            {
+                                g.PlayerOneWords.Add(play.Word, score);
+                            }
+                            else if (play.UserToken.Equals(g.PlayerTwo.UserToken))
+                            {
+                                g.PlayerTwoWords.Add(play.Word, score);
+                            }
+                            else
+                            {
+                                SetStatus(Forbidden);
+                                return null;
+                            }
+                            SetStatus(OK);
+                            return new ScoreInfo() { Score = score };
                         }
-                        else if (play.UserToken.Equals(g.PlayerTwo.UserToken))
-                        {
-                            g.PlayerTwoWords.Add(play.Word, score);
-                        }
-                        else
-                        {
-                            SetStatus(Forbidden);
-                            return null;
-                        }
-                        SetStatus(OK);
-                        return new ScoreInfo() { Score = score };
                     }
                 }
                 SetStatus(Forbidden);
