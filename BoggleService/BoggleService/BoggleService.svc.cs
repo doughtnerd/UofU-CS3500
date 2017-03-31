@@ -298,7 +298,8 @@ namespace Boggle
                         }
                     }
                 }
-                SetStatus(Forbidden);
+
+                SetStatus(Conflict);
                 return null;
             }
             SetStatus(Forbidden);
