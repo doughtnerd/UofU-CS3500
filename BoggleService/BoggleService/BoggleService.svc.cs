@@ -14,7 +14,7 @@ namespace Boggle
 {
     public class BoggleService : IBoggleService
     {
-        private static readonly ConcurrentDictionary<string, string> users = new ConcurrentDictionary<string, string>();
+        //private static readonly ConcurrentDictionary<string, string> users = new ConcurrentDictionary<string, string>();
         private static readonly ConcurrentQueue<Game> pendingGames = new ConcurrentQueue<Game>();
         private static readonly ConcurrentDictionary<string, Game> activeGames = new ConcurrentDictionary<string, Game>();
         private static readonly ConcurrentDictionary<string, Game> completedGames = new ConcurrentDictionary<string, Game>();
@@ -63,7 +63,29 @@ namespace Boggle
         /// <param name="user"></param>
         public void CancelJoin(UserInfo user)
         {
-            if (users.ContainsKey(user.UserToken))
+            /*
+            SqlConnection conn;
+            SqlTransaction trans = SQLUtils.BeginTransaction(connectionString, out conn);
+            SqlCommand command = new SqlCommand("select * from Users where UserToken = @token", conn, trans);
+            SQLUtils.AddWithValue(command, SQLUtils.BuildMappings("@token", user.UserToken));
+            string s = SQLUtils.ExecuteQuery<string>(conn, trans, command, (r) => {
+                if (r.HasRows == false)
+                {
+                    return null;
+                }
+                r.Read();
+                return (string) r["UserToken"];
+            });
+            */
+            /*
+            string s; 
+            bool exists = SQLUtils.DoIfContains(connectionString, "Users", "UserToken", user.UserToken, (r) => {
+                r.Read();
+                s = (string)r["UserToken"];
+            });
+            */
+            bool exists = SQLUtils.TableContains(connectionString, "Users", "UserToken", user.UserToken);
+            if (exists)
             {
                 if (InGame(user.UserToken, pendingGames))
                 {
@@ -76,7 +98,6 @@ namespace Boggle
                 }
             }
             SetStatus(Forbidden);
-            return;
         }
 
         /// <summary>
@@ -107,13 +128,13 @@ namespace Boggle
                         TimeLeft = timePassed>=g.TimeLimit ? 0 : g.TimeLimit-timePassed,
                         Player1 = new PlayerInfo
                         {
-                            Nickname = users[g.PlayerOne.UserToken],
+                            //Nickname = users[g.PlayerOne.UserToken],
                             Score = GetScore(g.PlayerOneWords),
                             WordsPlayed = brief.Equals("no") ? CollectWordData(g.PlayerOneWords) : null
                         },
                         Player2 = new PlayerInfo
                         {
-                            Nickname = users[g.PlayerTwo.UserToken],
+                            //Nickname = users[g.PlayerTwo.UserToken],
                             Score = GetScore(g.PlayerTwoWords),
                             WordsPlayed = brief.Equals("no") ? CollectWordData(g.PlayerTwoWords) : null
                         }
@@ -187,7 +208,7 @@ namespace Boggle
         /// <returns>Data containing the game's ID.</returns>
         public GameInfo Join(JoinInfo user)
         {
-            if (!string.IsNullOrEmpty(user.UserToken) && users.ContainsKey(user.UserToken) && user.TimeLimit >= 5 && user.TimeLimit <= 120)
+            if (!string.IsNullOrEmpty(user.UserToken) && SQLUtils.TableContains(connectionString, "Users", "UserToken", user.UserToken) && user.TimeLimit >= 5 && user.TimeLimit <= 120)
             {
                 if (!InGame(user.UserToken, pendingGames))
                 {
@@ -325,7 +346,9 @@ namespace Boggle
             }
             UserInfo t = new UserInfo();
             t.UserToken = Guid.NewGuid().ToString();
-            users.TryAdd(t.UserToken, user.Nickname);
+
+            //users.TryAdd(t.UserToken, user.Nickname);
+
             SqlConnection conn;
             SqlTransaction trans = SQLUtils.BeginTransaction(connectionString, out conn);
             SqlCommand command = new SqlCommand("insert into Users (UserToken, Nickname) values (@token, @name)", conn, trans);

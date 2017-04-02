@@ -17,6 +17,23 @@ namespace Boggle
             return conn.BeginTransaction();
         }
 
+        public static T ExecuteQuery<T>(SqlConnection conn, SqlTransaction transaction, SqlCommand command, Func<SqlDataReader, T> convert)
+        {
+            T t;
+            using (conn)
+            {
+                using (transaction)
+                {
+                    using (SqlDataReader reader = command.ExecuteReader())
+                    {
+                        t = convert(reader);
+                    }
+                    transaction.Commit();
+                }
+            }
+            return t;
+        }
+
         public static void ExecuteNonQuery(SqlConnection conn, SqlTransaction transaction, SqlCommand command, Action<int> callback)
         {
             using (conn)
@@ -50,6 +67,35 @@ namespace Boggle
                 dic.Add(mappings[i], mappings[i + 1]);
             }
             return dic;
+        }
+
+        public static bool TableContains(string connectionString, string tableName, string columnName, string item)
+        {
+            SqlConnection conn;
+            SqlTransaction trans = BeginTransaction(connectionString, out conn);
+            SqlCommand command = new SqlCommand(String.Format("select * from {0} where @column = @item", tableName), conn, trans);
+            AddWithValue(command, BuildMappings("@column", columnName, "@item", item));
+            return ExecuteQuery<bool>(conn, trans, command, (r)=> {
+                return r.HasRows;
+            });
+        }
+
+        public static bool DoIfContains(string connectionString, string tableName, string columnName, string item, Action<SqlDataReader> ifContained)
+        {
+            SqlConnection conn;
+            SqlTransaction trans = BeginTransaction(connectionString, out conn);
+            SqlCommand command = new SqlCommand(String.Format("select * from {0} where @column = @item", tableName), conn, trans);
+            AddWithValue(command, BuildMappings("@column", columnName, "@item", item));
+            return ExecuteQuery<bool>(conn, trans, command, (r) => {
+                if (r.HasRows)
+                {
+                    ifContained(r);
+                    return true;
+                } else
+                {
+                    return false;
+                }
+            });
         }
     }
 }
