@@ -208,7 +208,7 @@ namespace Boggle
         /// <returns>Data containing the game's ID.</returns>
         public GameInfo Join(JoinInfo user)
         {
-            if (!string.IsNullOrEmpty(user.UserToken) && SQLUtils.TableContains(connectionString, "Users", "UserToken", user.UserToken) && user.TimeLimit >= 5 && user.TimeLimit <= 120)
+            if (!string.IsNullOrEmpty(user.UserToken) && SQLUtils.TableContains(connectionString, "Users", "UserToken", "'"+user.UserToken+"'") && user.TimeLimit >= 5 && user.TimeLimit <= 120)
             {
                 if (!InGame(user.UserToken, pendingGames))
                 {

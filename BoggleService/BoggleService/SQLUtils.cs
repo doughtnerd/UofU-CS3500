@@ -75,6 +75,7 @@ namespace Boggle
             SqlTransaction trans = BeginTransaction(connectionString, out conn);
             SqlCommand command = new SqlCommand(String.Format("select * from {0} where @column = @item", tableName), conn, trans);
             AddWithValue(command, BuildMappings("@column", columnName, "@item", item));
+            Console.WriteLine(command.CommandText);
             return ExecuteQuery<bool>(conn, trans, command, (r)=> {
                 return r.HasRows;
             });
