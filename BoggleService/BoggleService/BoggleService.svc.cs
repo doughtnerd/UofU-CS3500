@@ -279,7 +279,7 @@ namespace Boggle
                     {
                         if (g.ID.Equals(id))
                         {
-                            int score = (g.PlayerOneWords.ContainsKey(word) || g.PlayerTwoWords.ContainsKey(word)) ? 0 : g.Board.CanBeFormed(word) && dictionary.Contains(word) ? 1 : -1;
+                            int score = (g.PlayerOneWords.ContainsKey(word) || g.PlayerTwoWords.ContainsKey(word) || (word.Length < 3)) ? 0 : g.Board.CanBeFormed(word) && dictionary.Contains(word) ? WordScore(word) : -1;
                             if (play.UserToken.Equals(g.PlayerOne.UserToken))
                             {
                                 g.PlayerOneWords.Add(word, score);
@@ -304,6 +304,25 @@ namespace Boggle
             }
             SetStatus(Forbidden);
             return null;
+        }
+
+        public int WordScore(string word)
+        {
+            switch (word.Length)
+            {
+                case 3:
+                    return 1;
+                case 4:
+                    return 1;
+                case 5:
+                    return 2;
+                case 6:
+                    return 3;
+                case 7:
+                    return 5;
+                default:
+                    return 11;
+            }
         }
 
         /// <summary>
