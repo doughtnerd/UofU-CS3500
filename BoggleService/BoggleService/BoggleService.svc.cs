@@ -19,7 +19,7 @@ namespace Boggle
         //private static readonly ConcurrentDictionary<string, Game> activeGames = new ConcurrentDictionary<string, Game>();
         //private static readonly ConcurrentDictionary<string, Game> completedGames = new ConcurrentDictionary<string, Game>();
         private static readonly HashSet<string> dictionary;
-        private static dynamic pendingGame = new ExpandoObject();
+        private static dynamic pendingGame;
 
         private static string connectionString;
 
@@ -35,6 +35,15 @@ namespace Boggle
                 }
             }
             connectionString = ConfigurationManager.ConnectionStrings["BoggleDB"].ConnectionString;
+            pendingGame = GetNewPendingGame();
+        }
+
+        static dynamic GetNewPendingGame()
+        {
+            dynamic o = new ExpandoObject();
+            o.Player1 = null;
+            o.GameId = null;
+            return o;
         }
 
         /// <summary>
@@ -76,6 +85,8 @@ namespace Boggle
         /// <returns>Desired status info as available for the game.</returns>
         public StatusInfo GameStatus(string id, string brief)
         {
+            Console.WriteLine(id);
+            /*
             brief = string.IsNullOrEmpty(brief) ? "no" : brief.ToLower();
             Game g = GetGame(id);
             if (g != null)
@@ -114,6 +125,8 @@ namespace Boggle
                 SetStatus(Forbidden);
                 return null;
             }
+             */
+            return null;
         }
 
         //TODO: Implement this, this will handle the basic logic of checking the timelimit against the start time of the game.
@@ -158,7 +171,7 @@ namespace Boggle
                     if (pendingGame.Player1 != null)
                     {
                         GameInfo info = JoinAsPlayerTwo(user, pendingGame.GameId);
-                        pendingGame = new ExpandoObject();
+                        pendingGame = GetNewPendingGame();
                         if (info == null)
                         {
                             SetStatus(InternalServerError);
@@ -170,6 +183,8 @@ namespace Boggle
                         }
                     } else {
                         GameInfo info = JoinAsPlayerOne(user);
+                        pendingGame.Player1 = user.UserToken;
+                        pendingGame.GameId = info.GameID;
                         if(info == null)
                         {
                             SetStatus(InternalServerError);
@@ -212,14 +227,13 @@ namespace Boggle
         private GameInfo JoinAsPlayerTwo(JoinInfo user, string gameId)
         {
             int averagedGameTime = 0;
-            //int numOfGames = 0;   
             SqlConnection conn;
             SqlTransaction trans = SQLUtils.BeginTransaction(connectionString, out conn);
             using (conn)
             {
                 using (trans)
                 {
-                    SqlCommand getTimeLimit = new SqlCommand("SELECT TimeLimit from Games WHERE GameId=@id");
+                    SqlCommand getTimeLimit = new SqlCommand("SELECT TimeLimit from Games WHERE GameId=@id", conn, trans);
                     getTimeLimit.Parameters.AddWithValue("@id", gameId);
                     using (SqlDataReader reader = getTimeLimit.ExecuteReader())
                     {
@@ -227,14 +241,18 @@ namespace Boggle
                         {
                             reader.Read();
                             averagedGameTime = (((int)reader["TimeLimit"]) + user.TimeLimit) / 2;
-                            SqlCommand command = new SqlCommand("UPDATE Games SET Player2 = @player2, Board = @board, TimeLimit = @limit, StartTime = @start where GameId = @id", conn, trans);
-                            SQLUtils.AddWithValue(command, SQLUtils.BuildMappings("@player2", user.UserToken, "@board", new BoggleBoard().ToString(), "@id", gameId, "@limit", averagedGameTime, "@start", DateTime.Now));
-                            int changed = command.ExecuteNonQuery();
-                            if (changed != 0)
+                            reader.Close();
+                            trans.Commit();
+                            using(trans = conn.BeginTransaction())
                             {
-                                reader.Close();
-                                trans.Commit();
-                                return new GameInfo() { GameID = gameId };
+                                SqlCommand command = new SqlCommand("UPDATE Games SET Player2 = @player2, Board = @board, TimeLimit = @limit, StartTime = @start where GameId = @id", conn, trans);
+                                SQLUtils.AddWithValue(command, SQLUtils.BuildMappings("@player2", user.UserToken, "@board", new BoggleBoard().ToString(), "@id", gameId, "@limit", averagedGameTime, "@start", DateTime.Now));
+                                int changed = command.ExecuteNonQuery();
+                                if (changed != 0)
+                                {
+                                    trans.Commit();
+                                    return new GameInfo() { GameID = gameId };
+                                }
                             }
                         }
                     }
@@ -247,20 +265,32 @@ namespace Boggle
         {
             SqlConnection conn;
             SqlTransaction trans = SQLUtils.BeginTransaction(connectionString, out conn);
-            SqlCommand command = new SqlCommand("INSERT INTO Games (Player1, Player2 Board, TimeLimit, StartTime) VALUES (@p1, @p2, @board, @limit, @start)", conn, trans);
-            SQLUtils.AddWithValue(command, SQLUtils.BuildMappings("@p1", user.UserToken, "@p2", null, "@board", null, "@limit", user.TimeLimit, "@start", null));
+            
             using (conn)
             {
                 using (trans)
                 {
-                    SqlCommand getCount = new SqlCommand("SELECT COUNT(GamId) from Games", conn, trans);
+                    SqlCommand getCount = new SqlCommand("SELECT COUNT(GameId) from Games", conn, trans);
                     using(SqlDataReader reader = getCount.ExecuteReader())
                     {
                         if (reader.HasRows)
                         {
                             reader.Read();
                             int count = (int)reader[0] + 1;
-                            return new GameInfo() { GameID = count.ToString() };
+                            reader.Close();
+                            trans.Commit();
+                            using (trans = conn.BeginTransaction())
+                            {
+                                SqlCommand command = new SqlCommand("INSERT INTO Games (Player1, Player2, Board, TimeLimit, StartTime) VALUES ( @p1, null, null, @limit, null)", conn, trans);
+                                SQLUtils.AddWithValue(command, SQLUtils.BuildMappings("@p1", user.UserToken, "@limit", user.TimeLimit));
+                                int changed = command.ExecuteNonQuery();
+                                trans.Commit();
+                                if (changed == 0)
+                                {
+                                    return null;
+                                }
+                                return new GameInfo() { GameID = count.ToString() };
+                            }
                         }
                     }
                 }
