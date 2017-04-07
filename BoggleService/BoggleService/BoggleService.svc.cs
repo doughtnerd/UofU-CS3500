@@ -15,10 +15,11 @@ namespace Boggle
     public class BoggleService : IBoggleService
     {
         //private static readonly ConcurrentDictionary<string, string> users = new ConcurrentDictionary<string, string>();
-        private static readonly ConcurrentQueue<Game> pendingGames = new ConcurrentQueue<Game>();
-        private static readonly ConcurrentDictionary<string, Game> activeGames = new ConcurrentDictionary<string, Game>();
-        private static readonly ConcurrentDictionary<string, Game> completedGames = new ConcurrentDictionary<string, Game>();
+        private static readonly ConcurrentQueue<dynamic> pendingGames = new ConcurrentQueue<dynamic>();
+        //private static readonly ConcurrentDictionary<string, Game> activeGames = new ConcurrentDictionary<string, Game>();
+        //private static readonly ConcurrentDictionary<string, Game> completedGames = new ConcurrentDictionary<string, Game>();
         private static readonly HashSet<string> dictionary;
+        private static dynamic pendingGame = new ExpandoObject();
 
         private static string connectionString;
 
@@ -63,40 +64,7 @@ namespace Boggle
         /// <param name="user"></param>
         public void CancelJoin(UserInfo user)
         {
-            /*
-            SqlConnection conn;
-            SqlTransaction trans = SQLUtils.BeginTransaction(connectionString, out conn);
-            SqlCommand command = new SqlCommand("select * from Users where UserToken = @token", conn, trans);
-            SQLUtils.AddWithValue(command, SQLUtils.BuildMappings("@token", user.UserToken));
-            string s = SQLUtils.ExecuteQuery<string>(conn, trans, command, (r) => {
-                if (r.HasRows == false)
-                {
-                    return null;
-                }
-                r.Read();
-                return (string) r["UserToken"];
-            });
-            */
-            /*
-            string s; 
-            bool exists = SQLUtils.DoIfContains(connectionString, "Users", "UserToken", user.UserToken, (r) => {
-                r.Read();
-                s = (string)r["UserToken"];
-            });
-            */
-            bool exists = SQLUtils.TableContains(connectionString, "Users", "UserToken", user.UserToken);
-            if (exists)
-            {
-                if (InGame(user.UserToken, pendingGames))
-                {
-                    Game g;
-                    if (pendingGames.TryDequeue(out g))
-                    {
-                        SetStatus(OK);
-                        return;
-                    }
-                }
-            }
+            //TODO: Handle checking if the user is in a pending game. If they are, cancel their participation.
             SetStatus(Forbidden);
         }
 
@@ -148,15 +116,10 @@ namespace Boggle
             }
         }
 
-        private bool CheckGameComplete(Game g)
+        //TODO: Implement this, this will handle the basic logic of checking the timelimit against the start time of the game.
+        private bool CheckGameComplete(int timeLimit, DateTime startTime)
         {
-            if ((DateTime.Now - g.TimeStarted).TotalSeconds >= g.TimeLimit)
-            {
-                g.GameState = Game.Status.completed;
-                completedGames.TryAdd(g.ID, g);
-                return true;
-            }
-            return false;
+            throw new NotImplementedException();
         }
 
         private static WordInfo[] CollectWordData(IDictionary<string, int> dic)
@@ -181,26 +144,6 @@ namespace Boggle
             return total;
         }
 
-        private Game GetGame(string id)
-        {
-            Game g;
-            return SearchForGame(id, pendingGames, out g) ? g : activeGames.TryGetValue(id, out g) ? g : completedGames.TryGetValue(id, out g) ? g : null;
-        }
-
-        private bool SearchForGame(string id, ConcurrentQueue<Game> games, out Game game)
-        {
-            foreach (Game g in games)
-            {
-                if (g.ID.Equals(id))
-                {
-                    game = g;
-                    return true;
-                }
-            }
-            game = null;
-            return false;
-        }
-
         /// <summary>
         /// Handles joining a pending Boggle game.
         /// </summary>
@@ -210,31 +153,32 @@ namespace Boggle
         {
             if (!string.IsNullOrEmpty(user.UserToken) && SQLUtils.TableContains(connectionString, "Users", "UserToken", "'"+user.UserToken+"'") && user.TimeLimit >= 5 && user.TimeLimit <= 120)
             {
-                if (!InGame(user.UserToken, pendingGames))
+                if (!InGame(user.UserToken))
                 {
-                    Game g;
-                    if(pendingGames.TryDequeue(out g))
+                    if (pendingGame.Player1 != null)
                     {
-                        if (g.PlayerOne != null)
+                        GameInfo info = JoinAsPlayerTwo(user, pendingGame.GameId);
+                        pendingGame = new ExpandoObject();
+                        if (info == null)
                         {
-                            GameInfo info =  JoinAsPlayerTwo(user, g);
-                            activeGames.TryAdd(g.ID, g);
-                            g.Start();
+                            SetStatus(InternalServerError);
+                            return null;
+                        } else
+                        {
+                            SetStatus(Created);
                             return info;
                         }
-                        else
+                    } else {
+                        GameInfo info = JoinAsPlayerOne(user);
+                        if(info == null)
                         {
-                            return JoinAsPlayerOne(user, g);
+                            SetStatus(InternalServerError);
+                            return null;
+                        } else
+                        {
+                            SetStatus(Accepted);
+                            return info;
                         }
-                    } else
-                    {
-                        g = new Game();
-                        g.PlayerOne = user;
-                        g.ID = activeGames.Count + completedGames.Count + pendingGames.Count + 1 + "";
-                        g.GameState = Game.Status.pending;
-                        pendingGames.Enqueue(g);
-                        SetStatus(Accepted);
-                        return new GameInfo() { GameID = g.ID };
                     }
                 }
                 SetStatus(Conflict);
@@ -244,47 +188,84 @@ namespace Boggle
             return null;
         }
 
-        private GameInfo JoinAsPlayerTwo(JoinInfo user, Game g)
+        private bool InGame(string userToken)
         {
-            g.PlayerTwo = user;
-            g.TimeLimit = (g.PlayerOne.TimeLimit + user.TimeLimit) / 2;
-            g.Board = new BoggleBoard();
-            g.GameState = Game.Status.active;
-            SetStatus(Created);
-            return new GameInfo() { GameID = g.ID };
-        }
-
-        private GameInfo JoinAsPlayerOne(JoinInfo user, Game g)
-        {
-            g.PlayerOne = user;
-            g.ID = activeGames.Count + completedGames.Count + pendingGames.Count + 1 + "";
-            g.GameState = Game.Status.pending;
-            SetStatus(Accepted);
-            return new GameInfo() { GameID = g.ID };
-        }
-
-        private bool InGame(string userToken, ConcurrentQueue<Game> pending)
-        {
-            foreach(Game g in pending)
+            SqlConnection conn;
+            SqlTransaction trans = SQLUtils.BeginTransaction(connectionString, out conn);
+            using (conn)
             {
-                if ((g.PlayerOne !=null && g.PlayerOne.UserToken.Equals(userToken)) || (g.PlayerTwo !=null && g.PlayerTwo.UserToken.Equals(userToken)))
+                using (trans)
                 {
-                    return true;
+                    SqlCommand command = new SqlCommand("SELECT GameId from Games where Player1=@token OR Player2=@token", conn, trans);
+                    command.Parameters.AddWithValue("@token", userToken);
+                    using(SqlDataReader reader = command.ExecuteReader())
+                    {
+                        if (reader.HasRows) {
+                            return true;
+                        }
+                        return false;
+                    }
                 }
             }
-            return false;
         }
 
-        private bool InGame(string userToken, ICollection<Game> gameBag)
+        private GameInfo JoinAsPlayerTwo(JoinInfo user, string gameId)
         {
-            foreach(Game g in gameBag)
+            int averagedGameTime = 0;
+            //int numOfGames = 0;   
+            SqlConnection conn;
+            SqlTransaction trans = SQLUtils.BeginTransaction(connectionString, out conn);
+            using (conn)
             {
-                if ((g.PlayerOne != null && g.PlayerOne.UserToken.Equals(userToken)) || (g.PlayerTwo != null && g.PlayerTwo.UserToken.Equals(userToken)))
+                using (trans)
                 {
-                    return true;
+                    SqlCommand getTimeLimit = new SqlCommand("SELECT TimeLimit from Games WHERE GameId=@id");
+                    getTimeLimit.Parameters.AddWithValue("@id", gameId);
+                    using (SqlDataReader reader = getTimeLimit.ExecuteReader())
+                    {
+                        if (reader.HasRows)
+                        {
+                            reader.Read();
+                            averagedGameTime = (((int)reader["TimeLimit"]) + user.TimeLimit) / 2;
+                            SqlCommand command = new SqlCommand("UPDATE Games SET Player2 = @player2, Board = @board, TimeLimit = @limit, StartTime = @start where GameId = @id", conn, trans);
+                            SQLUtils.AddWithValue(command, SQLUtils.BuildMappings("@player2", user.UserToken, "@board", new BoggleBoard().ToString(), "@id", gameId, "@limit", averagedGameTime, "@start", DateTime.Now));
+                            int changed = command.ExecuteNonQuery();
+                            if (changed != 0)
+                            {
+                                reader.Close();
+                                trans.Commit();
+                                return new GameInfo() { GameID = gameId };
+                            }
+                        }
+                    }
                 }
             }
-            return false;
+            return null;
+        }
+
+        private GameInfo JoinAsPlayerOne(JoinInfo user)
+        {
+            SqlConnection conn;
+            SqlTransaction trans = SQLUtils.BeginTransaction(connectionString, out conn);
+            SqlCommand command = new SqlCommand("INSERT INTO Games (Player1, Player2 Board, TimeLimit, StartTime) VALUES (@p1, @p2, @board, @limit, @start)", conn, trans);
+            SQLUtils.AddWithValue(command, SQLUtils.BuildMappings("@p1", user.UserToken, "@p2", null, "@board", null, "@limit", user.TimeLimit, "@start", null));
+            using (conn)
+            {
+                using (trans)
+                {
+                    SqlCommand getCount = new SqlCommand("SELECT COUNT(GamId) from Games", conn, trans);
+                    using(SqlDataReader reader = getCount.ExecuteReader())
+                    {
+                        if (reader.HasRows)
+                        {
+                            reader.Read();
+                            int count = (int)reader[0] + 1;
+                            return new GameInfo() { GameID = count.ToString() };
+                        }
+                    }
+                }
+            }
+            return null;
         }
 
         /// <summary>
@@ -295,33 +276,16 @@ namespace Boggle
         /// <returns>Data containing the score that word had.</returns>
         public ScoreInfo PlayWord(string id, PlayInfo play)
         {
+            //
             string word = play.Word.ToLower().Trim();
             if (!string.IsNullOrEmpty(word))
             {
-                Game g;
-                if (activeGames.TryGetValue(id, out g))
+                //TODO: Check if game is active.
+                if (false)
                 {
-                    if (!CheckGameComplete(g))
+                    //TODO:Check if game is complete
+                    if (!CheckGameComplete(0, DateTime.Now))
                     {
-                        if (g.ID.Equals(id))
-                        {
-                            int score = (g.PlayerOneWords.ContainsKey(word) || g.PlayerTwoWords.ContainsKey(word) || (word.Length < 3)) ? 0 : g.Board.CanBeFormed(word) && dictionary.Contains(word) ? WordScore(word) : -1;
-                            if (play.UserToken.Equals(g.PlayerOne.UserToken))
-                            {
-                                g.PlayerOneWords.Add(word, score);
-                            }
-                            else if (play.UserToken.Equals(g.PlayerTwo.UserToken))
-                            {
-                                g.PlayerTwoWords.Add(word, score);
-                            }
-                            else
-                            {
-                                SetStatus(Forbidden);
-                                return null;
-                            }
-                            SetStatus(OK);
-                            return new ScoreInfo() { Score = score };
-                        }
                     }
                 }
 
@@ -365,8 +329,6 @@ namespace Boggle
             }
             UserInfo t = new UserInfo();
             t.UserToken = Guid.NewGuid().ToString();
-
-            //users.TryAdd(t.UserToken, user.Nickname);
 
             SqlConnection conn;
             SqlTransaction trans = SQLUtils.BeginTransaction(connectionString, out conn);

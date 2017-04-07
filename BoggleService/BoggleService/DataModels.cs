@@ -22,7 +22,7 @@ namespace Boggle
         public string UserToken { get; set; }
         public int TimeLimit { get; set; }
     }
-
+    /*
     public class Game
     {
         public string ID { get; set; }
@@ -53,6 +53,7 @@ namespace Boggle
             completed
         }
     }
+    */
 
     [DataContract]
     public class StatusInfo

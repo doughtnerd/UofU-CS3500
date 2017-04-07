@@ -28,7 +28,7 @@ namespace Boggle
                     {
                         t = convert(reader);
                     }
-                    transaction.Commit();
+                    //transaction.Commit();
                 }
             }
             return t;
@@ -47,24 +47,24 @@ namespace Boggle
             }
         }
 
-        public static void AddWithValue(SqlCommand command, IDictionary<string, string> mappings)
+        public static void AddWithValue(SqlCommand command, IDictionary<string, object> mappings)
         {
-            foreach(KeyValuePair<string,string> pair in mappings)
+            foreach(KeyValuePair<string, object> pair in mappings)
             {
                 command.Parameters.AddWithValue(pair.Key, pair.Value);
             }
         }
 
-        public static IDictionary<string,string> BuildMappings(params string[] mappings)
+        public static IDictionary<string, object> BuildMappings(params object[] mappings)
         {
-            IDictionary<string, string> dic = new Dictionary<string, string>();
+            IDictionary<string, object> dic = new Dictionary<string, object>();
             if (mappings.Length % 2 != 0)
             {
                 throw new ArgumentException("Mappings must be matched pairs");
             }
             for(int i = 0; i < mappings.Length-1; i+=2)
             {
-                dic.Add(mappings[i], mappings[i + 1]);
+                dic.Add((string) mappings[i], mappings[i + 1]);
             }
             return dic;
         }
@@ -73,8 +73,7 @@ namespace Boggle
         {
             SqlConnection conn;
             SqlTransaction trans = BeginTransaction(connectionString, out conn);
-            SqlCommand command = new SqlCommand(String.Format("select * from {0} where @column = @item", tableName), conn, trans);
-            AddWithValue(command, BuildMappings("@column", columnName, "@item", item));
+            SqlCommand command = new SqlCommand("select * from "+ tableName +" where "+columnName+" = "+item, conn, trans);
             Console.WriteLine(command.CommandText);
             return ExecuteQuery<bool>(conn, trans, command, (r)=> {
                 return r.HasRows;
@@ -85,8 +84,7 @@ namespace Boggle
         {
             SqlConnection conn;
             SqlTransaction trans = BeginTransaction(connectionString, out conn);
-            SqlCommand command = new SqlCommand(String.Format("select * from {0} where @column = @item", tableName), conn, trans);
-            AddWithValue(command, BuildMappings("@column", columnName, "@item", item));
+            SqlCommand command = new SqlCommand("select * from " + tableName + " where " + columnName + " = " + item, conn, trans);
             return ExecuteQuery<bool>(conn, trans, command, (r) => {
                 if (r.HasRows)
                 {
