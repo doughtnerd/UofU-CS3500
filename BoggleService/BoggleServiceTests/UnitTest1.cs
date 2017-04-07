@@ -11,7 +11,7 @@ namespace Boggle
         [TestMethod]
         public void TestBuildMappings()
         {
-            IDictionary<string, string> dic = SQLUtils.BuildMappings("@user", "me");
+            IDictionary<string, object> dic = SQLUtils.BuildMappings("@user", "me");
             Assert.AreEqual("me", dic["@user"]);
 
             dic = SQLUtils.BuildMappings("@user", "me", "@pass", "password", "@token", "silly");

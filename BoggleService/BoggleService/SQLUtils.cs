@@ -69,12 +69,12 @@ namespace Boggle
             return dic;
         }
 
-        public static bool TableContains(string connectionString, string tableName, string columnName, string item)
+        public static bool TableContains(string connectionString, string tableName, string columnName, object item)
         {
             SqlConnection conn;
             SqlTransaction trans = BeginTransaction(connectionString, out conn);
-            SqlCommand command = new SqlCommand("select * from "+ tableName +" where "+columnName+" = "+item, conn, trans);
-            Console.WriteLine(command.CommandText);
+            SqlCommand command = new SqlCommand("select * from "+ tableName +" where "+columnName+" = @item", conn, trans);
+            command.Parameters.AddWithValue("@item", item);
             return ExecuteQuery<bool>(conn, trans, command, (r)=> {
                 return r.HasRows;
             });
