@@ -85,7 +85,7 @@ namespace Boggle
             user.UserToken = Guid.NewGuid().ToString();
             user.Nickname = null;
             r = client.DoPostAsync("users", user).Result;
-            Assert.AreEqual(r.Status, BadRequest);
+            Assert.AreEqual(r.Status, Forbidden);
 
 
         }
@@ -103,12 +103,12 @@ namespace Boggle
             //null nickname test
             user = new UserInfo();
             r = client.DoPostAsync("users", user).Result;
-            Assert.AreEqual(r.Status, BadRequest);
+            Assert.AreEqual(r.Status, Forbidden);
 
 
         }
         //creates a game with two players and tests it
-        [TestMethod]
+        /*[TestMethod]
         public void TestMethod3()
         {
             UserInfo user = new UserInfo();
@@ -165,10 +165,10 @@ namespace Boggle
             Assert.AreEqual(active.Data.GameState.Value, "active");
 
             //word post test
-            user.Word = "plll"; //non word gives score 0
+            user.Word = "plll"; //non word gives score -1
             string url = string.Format("games/{0}", "1");
             Response w = client.DoPutAsync(user, url).Result;           
-            Assert.AreEqual(w.Data.Score.Value, 0);
+            Assert.AreEqual(w.Data.Score.Value, -1);
 
             //word post non-matching token
             UserInfo usertokenfail = new UserInfo();
@@ -179,6 +179,7 @@ namespace Boggle
 
 
 
-        }
-    }
+        }*/
+        
+      }
 }
