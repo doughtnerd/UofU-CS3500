@@ -24,15 +24,6 @@ namespace Boggle
         //Database
         private static string BoggleDB;
 
-        /// <summary>
-        /// The most recent call to SetStatus determines the response code used when
-        /// an http response is sent.
-        /// </summary>
-        /// <param name="status"></param>
-        private static void SetStatus(HttpStatusCode status)
-        {
-            //WebOperationContext.Current.OutgoingResponse.StatusCode = status;
-        }
         static BoggleService()
         {
             //connection string set up in web.config
@@ -44,9 +35,9 @@ namespace Boggle
         /// Returns a Stream version of index.html.
         /// </summary>
         /// <returns></returns>
-        public Stream API()
+        public Stream API(out HttpStatusCode status)
         {
-            SetStatus(OK);
+            status = OK;// SetStatus(OK);
             //WebOperationContext.Current.OutgoingResponse.ContentType = "text/html";
             return File.OpenRead(AppDomain.CurrentDomain.BaseDirectory + "index.html");
         }
@@ -56,11 +47,11 @@ namespace Boggle
         /// </summary>
         /// <param name="u"></param>
         /// <returns></returns>
-        public UserInfo createUser(UserInfo u)
+        public UserInfo createUser(UserInfo u, out HttpStatusCode status)
         {
             if ((u.Nickname == null) || u.Nickname.Equals(""))
             {
-                SetStatus(Forbidden);
+                status = Forbidden;// SetStatus(Forbidden);
                 return null;
             }
             else
@@ -83,11 +74,12 @@ namespace Boggle
                             command.Parameters.AddWithValue("@Nickname", u.Nickname.Trim());
 
                             command.ExecuteNonQuery();
-                            SetStatus(Created);
+                            //SetStatus(Created); <- Doesn't seem necessary.
 
                             trans.Commit();
                             u.UserToken = usertoken;
-                            SetStatus(Created);
+                            //SetStatus(Created);
+                            status = Created;
                             return u;
                         }
                     }
@@ -131,13 +123,13 @@ namespace Boggle
         /// </summary>
         /// <param name="u"></param>
         /// <returns></returns>
-        public UserInfo joinGame(UserInfo u)
+        public UserInfo joinGame(UserInfo u, out HttpStatusCode status)
         {
             //contains a GameID to return
             UserInfo game;
             if (u.TimeLimit < 6 || u.TimeLimit > 120)
             {
-                SetStatus(Forbidden);
+                status = Forbidden;// SetStatus(Forbidden);
                 return null;
             }
             using (SqlConnection conn = new SqlConnection(BoggleDB))
@@ -154,7 +146,7 @@ namespace Boggle
                         {
                             if (!reader.HasRows)
                             {
-                                SetStatus(Forbidden);
+                                status = Forbidden;// SetStatus(Forbidden);
                                 trans.Commit();
                                 return null;
                             }
@@ -183,7 +175,7 @@ namespace Boggle
                                     trans.Commit();
 
                                     game = new UserInfo();
-                                    SetStatus(Accepted);
+                                    status = Accepted;// SetStatus(Accepted);
                                     game.GameID = GameID;
                                     return game;
                                 }
@@ -199,7 +191,7 @@ namespace Boggle
                                     if ((string)reader["Player1"] == (u.UserToken))
                                     {
                                         game = new UserInfo();
-                                        SetStatus(Conflict);
+                                        status = Conflict; //SetStatus(Conflict);
                                         return game;
                                     }
                                     int gameID = (int)reader["GameID"];
@@ -216,7 +208,7 @@ namespace Boggle
                                     trans.Commit();
 
                                     game = new UserInfo();
-                                    SetStatus(Created);
+                                    status = Created;// SetStatus(Created);
                                     game.GameID = gameID + "";
                                     return game;
                                 }
@@ -275,9 +267,9 @@ namespace Boggle
         /// <param name="GameID"></param>
         /// <param name="Brief"></param>
         /// <returns></returns>
-        public GameS getGame(string GameID, string Brief)
+        public GameS getGame(string GameID, string Brief, out HttpStatusCode status)
         {
-            GameS status = new GameS();
+            GameS gameStatus = new GameS();
             bool brief = false;
             if (Brief.Equals("yes"))
             {
@@ -286,36 +278,36 @@ namespace Boggle
             int gameid;
             if (!int.TryParse(GameID, out gameid))
             {
-                SetStatus(Forbidden);
+                status = Forbidden;// SetStatus(Forbidden);
                 return null;
             }
             //Get the game object using the helper method.
             Game thisGame = fromGameDB(GameID);
             if (thisGame == null)
             {
-                SetStatus(Forbidden);
-                return status;
+                status = Forbidden;// SetStatus(Forbidden);
+                return gameStatus;
             }
             if (thisGame.Player2 == null)
             {
-                SetStatus(OK);
-                status.GameState = "pending";
-                return status;
+                status = OK;// SetStatus(OK);
+                gameStatus.GameState = "pending";
+                return gameStatus;
             }
             else if (thisGame.StartTime.AddSeconds(thisGame.TimeLimit) < DateTime.Now)
             {
-                status.GameState = "completed";
-                status.TimeLeft = 0;
+                gameStatus.GameState = "completed";
+                gameStatus.TimeLeft = 0;
             }
             else
             {
-                status.GameState = "active";
-                status.TimeLeft = (thisGame.StartTime.AddSeconds(thisGame.TimeLimit) - DateTime.Now).Seconds + (thisGame.StartTime.AddSeconds(thisGame.TimeLimit) - DateTime.Now).Minutes * 60;
+                gameStatus.GameState = "active";
+                gameStatus.TimeLeft = (thisGame.StartTime.AddSeconds(thisGame.TimeLimit) - DateTime.Now).Seconds + (thisGame.StartTime.AddSeconds(thisGame.TimeLimit) - DateTime.Now).Minutes * 60;
             }
 
 
-            status.Board = thisGame.Board;
-            status.TimeLimit = thisGame.TimeLimit;
+            gameStatus.Board = thisGame.Board;
+            gameStatus.TimeLimit = thisGame.TimeLimit;
 
             Player p1 = new Player();
             Player p2 = new Player();
@@ -335,7 +327,7 @@ namespace Boggle
                 p1.Score += curr.Score;
                 WordsPlayed.Add(curr);
             }
-            if (status.GameState == "completed" && !brief)
+            if (gameStatus.GameState == "completed" && !brief)
             {
                 p1.WordsPlayed = WordsPlayed;
             }
@@ -350,13 +342,15 @@ namespace Boggle
                 p2.Score += curr.Score;
                 WordsPlayed.Add(curr);
             }
-            if (status.GameState == "completed" && !brief)
+            if (gameStatus.GameState == "completed" && !brief)
             {
                 p2.WordsPlayed = WordsPlayed;
             }
-            status.Player1 = p1;
-            status.Player2 = p2;
-            return status;
+            gameStatus.Player1 = p1;
+            gameStatus.Player2 = p2;
+
+            status = OK; //TODO: SetStatus was missing here, without reading the entire code, this seems to be the correct code to send. I'll review later.
+            return gameStatus;
 
         }
         /// <summary>
@@ -440,7 +434,7 @@ namespace Boggle
         /// <param name="u"></param>
         /// <param name="GameID"></param>
         /// <returns></returns>
-        public S postWord(UserInfo u, string GameID)
+        public S postWord(UserInfo u, string GameID, out HttpStatusCode status)
         {
             int gameid;
             //gameIDs are auto-generated ints
@@ -453,13 +447,14 @@ namespace Boggle
             //null parameters
             if (game == null || u.Word == null || u.Word.Length == 0 || !(game.Player1 == u.UserToken || game.Player2 == u.UserToken))
             {
-                SetStatus(Forbidden);
+
+                status = Forbidden;// SetStatus(Forbidden);
                 return null;
             }
             //if game is over, conflict
             if ((game.Player2 == null) || game.StartTime.AddSeconds(game.TimeLimit) < DateTime.Now)
             {
-                SetStatus(Conflict);
+                status = Conflict;// SetStatus(Conflict);
                 return null;
             }
             //get words played
@@ -489,14 +484,14 @@ namespace Boggle
                         }
                         else
                         {
-                            SetStatus(Conflict);
+                            status = Conflict;// SetStatus(Conflict);
                             return null;
                         }
                     }
                     trans.Commit();
                 }
 
-                SetStatus(OK);
+                status = OK;// SetStatus(OK);
                 sc.Score = score;
                 return sc;
             }
@@ -506,7 +501,7 @@ namespace Boggle
         /// Cancels a game that a user has created. User must be a part of the game and the game shouldn't have a Player2.
         /// </summary>
         /// <param name="u"></param>
-        public void cancel(UserInfo u)
+        public void cancel(UserInfo u, out HttpStatusCode status)
         {
             using (SqlConnection conn = new SqlConnection(BoggleDB))
             {
@@ -523,7 +518,7 @@ namespace Boggle
                             //user must be one of the players
                             if (!((reader["Player2"].Equals(u.UserToken)) || (reader["Player1"].Equals(u.UserToken))))
                             {
-                                SetStatus(Forbidden);
+                                status = Forbidden;// SetStatus(Forbidden);
                                 return;
                             }
                             //must be a Player1 and Player2 is null.
@@ -534,14 +529,14 @@ namespace Boggle
                                     newcommand.Parameters.AddWithValue("@GameID", (int)reader["GameID"]);
                                     reader.Close();
                                     newcommand.ExecuteNonQuery();
-                                    SetStatus(OK);
+                                    status = OK;// SetStatus(OK);
                                     trans.Commit();
 
                                 }
                             }
                             else
                             {
-                                SetStatus(Forbidden);
+                                status = Forbidden;// SetStatus(Forbidden);
                             }
                         }
                     }
