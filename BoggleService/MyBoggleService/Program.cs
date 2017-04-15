@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Boggle
@@ -14,7 +15,8 @@ namespace Boggle
 
         static void Main(string[] args)
         {
-
+            new BoggleServer(IPAddress.Any, 60000);
+            Console.ReadLine();
         }
 
         public BoggleServer(IPAddress ip, int port)
@@ -133,12 +135,23 @@ namespace Boggle
                     int start = 0;
                     for (int i = 0; i < incoming.Length; i++)
                     {
+                        Console.WriteLine(incoming[i]);
                         if (incoming[i] == '\n')
                         {
                             String line = incoming.ToString(start, i + 1 - start);
-
-
-                            SendMessage(line.ToUpper());
+                            line = Regex.Replace(line, @"\r|\n", "");
+                            string s;
+                            if (ExtractMethod(line, out s))
+                            {
+                                headers.Add("method", s);
+                                if (ExtractAction(line, out s))
+                                {
+                                    headers.Add("action", s);
+                                }
+                            } else if (ExtractContentLength(line, out s)){
+                                headers.Add("content-length", s);
+                            }
+                            //SendMessage(line.ToUpper());
                             lastNewline = i;
                             start = i + 1;
                         }
@@ -149,6 +162,69 @@ namespace Boggle
                     socket.BeginReceive(incomingBytes, 0, incomingBytes.Length,
                         SocketFlags.None, MessageReceived, null);
                 }
+            }
+
+            private Dictionary<string, string> headers = new Dictionary<string, string>();
+
+            private bool ExtractContentLength(string line, out string length)
+            {
+                return ExtractFromLine(line, new Regex(@"^content-length:[ ]{0,1}(\d+)$"), 1, out length);
+                /*
+                Regex r = new Regex(@"^content-length:[ ]{0,1}(\d+)$");
+                Match m = r.Match(line);
+                if (m.Success)
+                {
+                    length = int.Parse(m.Groups[1].ToString());
+                    return true;
+                }
+                length = 0;
+                return false;
+                */
+            }
+
+            private bool ExtractMethod(string line, out string method)
+            {
+                return ExtractFromLine(line, new Regex(@"^(POST|PUT|GET|DELETE) \/BoggleService\.svc.*$"), 1, out method);
+                /*
+                Regex r = new Regex(@"^(POST|PUT|GET|DELETE) \/BoggleService\.svc.*$");
+                Match m = r.Match(line);
+                if (m.Success)
+                {
+                    method = m.Groups[1].ToString();
+                    return true;
+                }
+                method = null;
+                return false;
+                */
+            }
+
+            private bool ExtractAction(string line, out string action)
+            {
+                return ExtractFromLine(line, new Regex(@"^\w* \/BoggleService\.svc\/(games|users).*$"), 1, out action);
+                /*
+                Regex r = new Regex(@"^\w* \/BoggleService\.svc\/(games|users).*$");
+                Match m = r.Match(line);
+                if (m.Success)
+                {
+                    action = m.Groups[1].ToString();
+                    return true;
+                }
+                action = null;
+                return false;
+                */
+
+            }
+
+            private bool ExtractFromLine(string line, Regex regex, int group, out string match)
+            {
+                Match m = regex.Match(line);
+                if (m.Success)
+                {
+                    match = m.Groups[group].ToString();
+                    return true;
+                }
+                match = null;
+                return false;
             }
 
             /// <summary>
