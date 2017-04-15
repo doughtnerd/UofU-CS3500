@@ -1,5 +1,7 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -88,6 +90,10 @@ namespace Boggle
 
             private readonly object sendSync = new object();
 
+            private Dictionary<string, string> headers = new Dictionary<string, string>();
+            bool beginBodyCollection = false;
+            private BoggleService service = new BoggleService();
+
             // Bytes that we are actively trying to send, along with the
             // index of the leftmost byte whose send has not yet been completed
             private byte[] pendingBytes = new byte[0];
@@ -128,33 +134,48 @@ namespace Boggle
                     // Convert the bytes into characters and appending to incoming
                     int charsRead = decoder.GetChars(incomingBytes, 0, bytesRead, incomingChars, 0, false);
                     incoming.Append(incomingChars, 0, charsRead);
-                    //Console.WriteLine(incoming);
 
-                    // Echo any complete lines, after capitalizing them
                     int lastNewline = -1;
                     int start = 0;
                     for (int i = 0; i < incoming.Length; i++)
                     {
-                        Console.WriteLine(incoming[i]);
                         if (incoming[i] == '\n')
                         {
                             String line = incoming.ToString(start, i + 1 - start);
                             line = Regex.Replace(line, @"\r|\n", "");
-                            string s;
-                            if (ExtractMethod(line, out s))
+                            Regex r = new Regex(@"^(GET|POST|PUT|DELETE) .*\/BoggleService\.svc\/(games|users)\/?(\d+)?(\?[bB]rief=(.?yes.?|.?no.?))?.*$");
+                            Match m = r.Match(line);
+                            if (m.Success)
                             {
-                                headers.Add("method", s);
-                                if (ExtractAction(line, out s))
+                                for(int index = 1; i < m.Groups.Count; index++)
                                 {
-                                    headers.Add("action", s);
+                                    switch (index)
+                                    {
+                                        case 1:
+                                            headers.Add("method", m.Groups[index].ToString());
+                                            break;
+                                        case 2:
+                                            headers.Add("action", m.Groups[index].ToString());
+                                            break;
+                                        case 3:
+                                            headers.Add("game", m.Groups[index].ToString());
+                                            break;
+                                        case 4:
+                                            headers.Add("query", m.Groups[index].ToString());
+                                            break;
+                                    }
                                 }
-                            } else if (ExtractContentLength(line, out s)){
-                                headers.Add("content-length", s);
                             }
-                            //SendMessage(line.ToUpper());
+                            r = new Regex(@"^[cC]ontent-[lL]ength:.?(\d+)$");
+                            m = r.Match(line);
+                            if (m.Success)
+                            {
+                                headers.Add("length", m.Groups[1].ToString());
+                            }
                             lastNewline = i;
                             start = i + 1;
                         }
+                        
                     }
                     incoming.Remove(0, lastNewline + 1);
 
@@ -164,55 +185,72 @@ namespace Boggle
                 }
             }
 
-            private Dictionary<string, string> headers = new Dictionary<string, string>();
+            private void HandleBuildMessage(Dictionary<string, string> headers)
+            {
+                if (headers.ContainsKey("method"))
+                {
+                    switch (headers["method"])
+                    {
+                        case "GET":
+                            break;
+                        case "POST":
+                            HandlePostRequest(headers["action"], headers["body"]);
+                            break;
+                        case "PUT":
+                            break;
+                        case "DELETE":
+                            break;
+                    }
+                }
+            }
+
+            private void HandlePostRequest(string action, string body)
+            {
+                HttpStatusCode status;
+                dynamic outgoingData = new ExpandoObject();
+                dynamic incomingData = new ExpandoObject();
+                switch (action)
+                {
+                    case "users":
+                        incomingData = JsonConvert.DeserializeObject(body);
+                        UserInfo info = service.createUser(new UserInfo() { Nickname = incomingData.Nickname }, out status);
+                        outgoingData.UserToken = info.UserToken;
+                        SendMessage(JsonConvert.SerializeObject(outgoingData));
+                        break;
+                    case "games":
+                        break;
+                }
+            }
+
+            private void HandleGetRequest(string action)
+            {
+
+            }
+
+            private void CollectBody(string line)
+            {
+                if (this.headers.ContainsKey("body"))
+                {
+                    headers["body"] = headers["body"] + line;
+                } else
+                {
+                    headers.Add("body", line);
+                }
+            }
 
             private bool ExtractContentLength(string line, out string length)
             {
                 return ExtractFromLine(line, new Regex(@"^content-length:[ ]{0,1}(\d+)$"), 1, out length);
-                /*
-                Regex r = new Regex(@"^content-length:[ ]{0,1}(\d+)$");
-                Match m = r.Match(line);
-                if (m.Success)
-                {
-                    length = int.Parse(m.Groups[1].ToString());
-                    return true;
-                }
-                length = 0;
-                return false;
-                */
             }
 
             private bool ExtractMethod(string line, out string method)
             {
-                return ExtractFromLine(line, new Regex(@"^(POST|PUT|GET|DELETE) \/BoggleService\.svc.*$"), 1, out method);
-                /*
-                Regex r = new Regex(@"^(POST|PUT|GET|DELETE) \/BoggleService\.svc.*$");
-                Match m = r.Match(line);
-                if (m.Success)
-                {
-                    method = m.Groups[1].ToString();
-                    return true;
-                }
-                method = null;
-                return false;
-                */
+                return ExtractFromLine(line, new Regex(@"^(POST|PUT|GET|DELETE).*$"), 1, out method);
             }
 
             private bool ExtractAction(string line, out string action)
             {
                 return ExtractFromLine(line, new Regex(@"^\w* \/BoggleService\.svc\/(games|users).*$"), 1, out action);
-                /*
-                Regex r = new Regex(@"^\w* \/BoggleService\.svc\/(games|users).*$");
-                Match m = r.Match(line);
-                if (m.Success)
-                {
-                    action = m.Groups[1].ToString();
-                    return true;
-                }
-                action = null;
-                return false;
-                */
-
             }
 
             private bool ExtractFromLine(string line, Regex regex, int group, out string match)
