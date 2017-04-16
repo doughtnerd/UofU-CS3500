@@ -93,6 +93,7 @@ namespace Boggle
             private Dictionary<string, string> headers = new Dictionary<string, string>();
             bool beginBodyCollection = false;
             private BoggleService service = new BoggleService();
+            int remainingBody;
 
             // Bytes that we are actively trying to send, along with the
             // index of the leftmost byte whose send has not yet been completed
@@ -120,6 +121,8 @@ namespace Boggle
                 // Figure out how many bytes have come in
                 int bytesRead = socket.EndReceive(result);
 
+
+
                 // If no bytes were received, it means the client closed its side of the socket.
                 // Report that to the console and close our socket.
                 if (bytesRead == 0)
@@ -141,36 +144,20 @@ namespace Boggle
                     {
                         if (incoming[i] == '\n')
                         {
-                            String line = incoming.ToString(start, i + 1 - start);
-                            line = Regex.Replace(line, @"\r|\n", "");
-                            Regex r = new Regex(@"^(GET|POST|PUT|DELETE) .*\/BoggleService\.svc\/(games|users)\/?(\d+)?(\?[bB]rief=(.?yes.?|.?no.?))?.*$");
-                            Match m = r.Match(line);
-                            if (m.Success)
+                            string line = incoming.ToString(start, i + 1 - start);
+                            string altered = Regex.Replace(line, @"\r|\n", "");
+                            if (!string.IsNullOrEmpty(altered))
                             {
-                                for(int index = 1; i < m.Groups.Count; index++)
+                                if (beginBodyCollection)
                                 {
-                                    switch (index)
-                                    {
-                                        case 1:
-                                            headers.Add("method", m.Groups[index].ToString());
-                                            break;
-                                        case 2:
-                                            headers.Add("action", m.Groups[index].ToString());
-                                            break;
-                                        case 3:
-                                            headers.Add("game", m.Groups[index].ToString());
-                                            break;
-                                        case 4:
-                                            headers.Add("query", m.Groups[index].ToString());
-                                            break;
-                                    }
+                                    CollectBody(line);
+                                } else
+                                {
+                                    CaptureHeaders(altered);
                                 }
-                            }
-                            r = new Regex(@"^[cC]ontent-[lL]ength:.?(\d+)$");
-                            m = r.Match(line);
-                            if (m.Success)
+                            } else
                             {
-                                headers.Add("length", m.Groups[1].ToString());
+                                beginBodyCollection = true;
                             }
                             lastNewline = i;
                             start = i + 1;
@@ -179,9 +166,61 @@ namespace Boggle
                     }
                     incoming.Remove(0, lastNewline + 1);
 
+                    if (beginBodyCollection)
+                    {
+                        if (remainingBody == 0)
+                        {
+                            beginBodyCollection = false;
+                            //TODO Build message here.
+                            HandleBuildMessage(headers);
+                        } else if (remainingBody < 0)
+                        {
+                            Console.Error.WriteLine("Something has gone horribly wrong...");
+                        }
+                    }
+
                     // Ask for some more data
                     socket.BeginReceive(incomingBytes, 0, incomingBytes.Length,
                         SocketFlags.None, MessageReceived, null);
+                }
+            }
+
+            private void CaptureHeaders(string line)
+            {
+                Regex r = new Regex(@"^(GET|POST|PUT|DELETE) ?.*\/BoggleService\.svc\/(games|users)\/?(\d+)?(\?[bB]rief=(.?yes.?|.?no.?))?.*$");
+                Match m = r.Match(line);
+                if (m.Success)
+                {
+                    for (int index = 1; index < m.Groups.Count; index++)
+                    {
+                        string match = m.Groups[index].ToString();
+                        switch (index)
+                        {
+                            case 1:
+                                if (!string.IsNullOrEmpty(match))
+                                    headers.Add("method",match);
+                                break;
+                            case 2:
+                                if (!string.IsNullOrEmpty(match))
+                                    headers.Add("action", match);
+                                break;
+                            case 3:
+                                if(!string.IsNullOrEmpty(match))
+                                    headers.Add("game", match);
+                                break;
+                            case 4:
+                                if (!string.IsNullOrEmpty(match))
+                                    headers.Add("query", match);
+                                break;
+                        }
+                    }
+                }
+                r = new Regex(@"^[cC]ontent-[lL]ength:.?(\d+)$");
+                m = r.Match(line);
+                if (m.Success)
+                {
+                    headers.Add("length", m.Groups[1].ToString());
+                    this.remainingBody = int.Parse(m.Groups[1].ToString()) ;
                 }
             }
 
@@ -215,7 +254,12 @@ namespace Boggle
                         incomingData = JsonConvert.DeserializeObject(body);
                         UserInfo info = service.createUser(new UserInfo() { Nickname = incomingData.Nickname }, out status);
                         outgoingData.UserToken = info.UserToken;
-                        SendMessage(JsonConvert.SerializeObject(outgoingData));
+
+                        string header = "HTTP/1.1 " + ((int)status) + " " + status.ToString()+"\r\ncontent-type: application/json; charset=utf-8\r\n";
+                        string content = JsonConvert.SerializeObject(outgoingData);
+                        header += "content-length: " + encoding.GetByteCount(content.ToCharArray()) + "\r\n\r\n";
+                        header += content;
+                        SendMessage(header);
                         break;
                     case "games":
                         break;
@@ -236,6 +280,8 @@ namespace Boggle
                 {
                     headers.Add("body", line);
                 }
+                int bytesInLine = encoding.GetByteCount(line.ToCharArray());
+                remainingBody -= bytesInLine;
             }
 
             private bool ExtractContentLength(string line, out string length)
