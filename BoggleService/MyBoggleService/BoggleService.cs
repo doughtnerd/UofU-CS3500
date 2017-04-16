@@ -147,6 +147,7 @@ namespace Boggle
                             if (!reader.HasRows)
                             {
                                 status = Forbidden;// SetStatus(Forbidden);
+                                reader.Close();
                                 trans.Commit();
                                 return null;
                             }
@@ -434,13 +435,13 @@ namespace Boggle
         /// <param name="u"></param>
         /// <param name="GameID"></param>
         /// <returns></returns>
-        public S postWord(UserInfo u, string GameID, out HttpStatusCode status)
+        public ScoreInfo postWord(UserInfo u, string GameID, out HttpStatusCode status)
         {
             int gameid;
             //gameIDs are auto-generated ints
             int.TryParse(GameID, out gameid);
 
-            S sc = new S(); //score object
+            ScoreInfo sc = new ScoreInfo(); //score object
 
             //get the game that user is trying to post to
             Game game = fromGameDB(GameID);

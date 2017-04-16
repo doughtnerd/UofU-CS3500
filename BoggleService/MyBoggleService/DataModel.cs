@@ -61,7 +61,7 @@ namespace Boggle
         public string Player { get; set; }
         public int Score { get; set; }
     }
-    public class S
+    public class ScoreInfo
     {
         public int Score { get; set; }
     }

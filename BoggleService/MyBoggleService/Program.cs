@@ -142,7 +142,7 @@ namespace Boggle
                     int start = 0;
                     for (int i = 0; i < incoming.Length; i++)
                     {
-                        if (incoming[i] == '\n')
+                        if (incoming[i] == '\n' || i == incoming.Length-1)
                         {
                             string line = incoming.ToString(start, i + 1 - start);
                             string altered = Regex.Replace(line, @"\r|\n", "");
@@ -151,7 +151,8 @@ namespace Boggle
                                 if (beginBodyCollection)
                                 {
                                     CollectBody(line);
-                                } else
+                                }
+                                else
                                 {
                                     CaptureHeaders(altered);
                                 }
@@ -162,21 +163,25 @@ namespace Boggle
                             lastNewline = i;
                             start = i + 1;
                         }
-                        
                     }
+                    
                     incoming.Remove(0, lastNewline + 1);
 
                     if (beginBodyCollection)
                     {
+                        //CollectBody(incoming.ToString());
+                        
                         if (remainingBody == 0)
                         {
                             beginBodyCollection = false;
-                            //TODO Build message here.
                             BuildAndSendResponse(headers);
-                        } else if (remainingBody < 0)
-                        {
-                            Console.Error.WriteLine("Something has gone horribly wrong...");
-                        }
+                        } 
+                    }
+
+                    if (headers.ContainsKey("continue"))
+                    {
+                        headers.Remove("continue");
+                        SendMessage(BuildHeader(null, HttpStatusCode.Continue));
                     }
 
                     // Ask for some more data
@@ -222,6 +227,13 @@ namespace Boggle
                     headers.Add("length", m.Groups[1].ToString());
                     this.remainingBody = int.Parse(m.Groups[1].ToString()) ;
                 }
+                r = new Regex(@"^[eE]xpect:.?(100)-[cC]ontinue*$");
+                m = r.Match(line);
+                if (m.Success)
+                {
+                    //SendMessage(BuildHeader(null, HttpStatusCode.Continue));
+                    headers.Add("continue", "100");
+                }
             }
 
             private void BuildAndSendResponse(Dictionary<string, string> headers)
@@ -231,18 +243,50 @@ namespace Boggle
                     switch (headers["method"])
                     {
                         case "GET":
-                            string game = headers.ContainsKey("game") ? headers["game"] : null;
-                            string query = headers.ContainsKey("query") ? headers["query"] : null;
-                            HandleGetRequest(headers["action"], game, query);
-                            break;
+                            {
+                                string game = headers.ContainsKey("game") ? headers["game"] : null;
+                                string query = headers.ContainsKey("query") ? headers["query"] : null;
+                                HandleGetRequest(headers["action"], game, query);
+                                break;
+                            }
                         case "POST":
                             HandlePostRequest(headers["action"], headers["body"]);
                             break;
                         case "PUT":
-                            break;
+                            {
+                                string game = headers.ContainsKey("game") ? headers["game"] : null;
+                                HandlePutRequest(headers["action"], game, headers["body"]);
+                                break;
+                            }
                         case "DELETE":
                             break;
                     }
+                }
+            }
+
+            private void HandlePutRequest(string action, string game, string body)
+            {
+                HttpStatusCode status;
+                dynamic outgoingData = new ExpandoObject();
+                dynamic incomingData = new ExpandoObject();
+                switch (action)
+                {
+                    case "games":
+                        incomingData = JsonConvert.DeserializeObject(body);
+                        if (game == null)
+                        {
+                            service.cancel(new UserInfo() { UserToken = incomingData.UserToken }, out status);
+                            SendMessage(BuildHeader(null, status));
+                        } else
+                        {
+                            ScoreInfo score = service.postWord(new UserInfo() { UserToken = incomingData.UserToken, Word = incomingData.Word}, game, out status);
+                            if (score!=null)
+                            {
+                                outgoingData.Score = score.Score;
+                            }
+                            SendMessage(BuildHeader(outgoingData, status));
+                        }
+                        break;
                 }
             }
 
@@ -257,7 +301,10 @@ namespace Boggle
                         {
                             incomingData = JsonConvert.DeserializeObject(body);
                             UserInfo info = service.createUser(new UserInfo() { Nickname = incomingData.Nickname }, out status);
-                            outgoingData.UserToken = info?.UserToken;
+                            if (info != null)
+                            {
+                                outgoingData.UserToken = info.UserToken;
+                            }
                             SendMessage(BuildHeader(outgoingData, status));
                         }
                         break;
@@ -265,7 +312,10 @@ namespace Boggle
                         {
                             incomingData = JsonConvert.DeserializeObject(body);
                             UserInfo info = service.joinGame(new UserInfo() { TimeLimit = incomingData.TimeLimit, UserToken = incomingData.UserToken }, out status);
-                            outgoingData.GameID = info?.GameID;
+                            if(info!=null)
+                            {
+                                outgoingData.GameID = info.GameID;
+                            }
                             SendMessage(BuildHeader(outgoingData, status));
                         }
                         break;
@@ -280,9 +330,42 @@ namespace Boggle
                 switch (action)
                 {
                     case "games":
+                        
                         bool isBrief = IsBrief(query);
                         GameS gameStatus = service.getGame(game, isBrief ? "yes" : "no", out status);
-                        SendMessage(BuildHeader(gameStatus, status)); //TODO Change, I just want to see what this will do.
+                        if (gameStatus != null)
+                        {
+                            outgoingData.GameState = gameStatus.GameState;
+                            if (gameStatus.GameState.Equals("pending"))
+                            {
+                                SendMessage(BuildHeader(outgoingData, status));
+                            }
+                            else
+                            {
+                                dynamic p1 = new ExpandoObject();
+                                dynamic p2 = new ExpandoObject();
+                                outgoingData.TimeLeft = gameStatus.TimeLeft;
+                                outgoingData.Player1 = p1;
+                                outgoingData.Player2 = p2;
+                                outgoingData.Player1.Score = gameStatus.Player1.Score;
+                                outgoingData.Player2.Score = gameStatus.Player2.Score;
+                                if (!isBrief)
+                                {
+                                    outgoingData.Board = gameStatus.Board;
+                                    outgoingData.TimeLimit = gameStatus.TimeLimit;
+
+                                    outgoingData.Player1.Nickname = gameStatus.Player1.Nickname;
+                                    outgoingData.Player1.WordsPlayed = gameStatus.Player1.WordsPlayed;
+
+                                    outgoingData.Player2.Nickname = gameStatus.Player2.Nickname;
+                                    outgoingData.Player2.WordsPlayed = gameStatus.Player2.WordsPlayed;
+                                }
+                                SendMessage(BuildHeader(outgoingData, status)); //TODO Change, I just want to see what this will do.
+                            }
+                        } else
+                        {
+                            SendMessage(BuildHeader(null, status));
+                        }
                         break;
                 }
             }
