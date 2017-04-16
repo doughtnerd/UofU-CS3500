@@ -52,6 +52,11 @@ namespace Boggle
         public int TimeLimit { get; set; }
         public int Score { get; set; }
         public List<Words> WordsPlayed { get; set; }
+
+        public Player()
+        {
+            WordsPlayed = new List<Words>();
+        }
     }
     public class Words
     {

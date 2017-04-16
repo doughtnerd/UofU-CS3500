@@ -343,6 +343,9 @@ namespace Boggle
                             else
                             {
                                 dynamic p1 = new ExpandoObject();
+                                List<dynamic> p1Words = new List<dynamic>();
+                                List<dynamic> p2Words = new List<dynamic>();
+
                                 dynamic p2 = new ExpandoObject();
                                 outgoingData.TimeLeft = gameStatus.TimeLeft;
                                 outgoingData.Player1 = p1;
@@ -355,10 +358,23 @@ namespace Boggle
                                     outgoingData.TimeLimit = gameStatus.TimeLimit;
 
                                     outgoingData.Player1.Nickname = gameStatus.Player1.Nickname;
-                                    outgoingData.Player1.WordsPlayed = gameStatus.Player1.WordsPlayed;
+                                    gameStatus.Player1.WordsPlayed.ForEach((w) => {
+                                        dynamic item = new ExpandoObject();
+                                        item.Word = w.Word;
+                                        item.Score = w.Score;
+                                        p1Words.Add(item);
+                                    });
+                                    outgoingData.Player1.WordsPlayed = p1Words;
 
                                     outgoingData.Player2.Nickname = gameStatus.Player2.Nickname;
-                                    outgoingData.Player2.WordsPlayed = gameStatus.Player2.WordsPlayed;
+                                    
+                                    gameStatus.Player2.WordsPlayed.ForEach((w) => {
+                                        dynamic item = new ExpandoObject();
+                                        item.Word = w.Word;
+                                        item.Score = w.Score;
+                                        p2Words.Add(item);
+                                    });
+                                    outgoingData.Player2.WordsPlayed = p2Words;
                                 }
                                 SendMessage(BuildHeader(outgoingData, status)); //TODO Change, I just want to see what this will do.
                             }
