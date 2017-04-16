@@ -172,7 +172,7 @@ namespace Boggle
                         {
                             beginBodyCollection = false;
                             //TODO Build message here.
-                            HandleBuildMessage(headers);
+                            BuildAndSendResponse(headers);
                         } else if (remainingBody < 0)
                         {
                             Console.Error.WriteLine("Something has gone horribly wrong...");
@@ -224,14 +224,16 @@ namespace Boggle
                 }
             }
 
-            private void HandleBuildMessage(Dictionary<string, string> headers)
+            private void BuildAndSendResponse(Dictionary<string, string> headers)
             {
                 if (headers.ContainsKey("method"))
                 {
                     switch (headers["method"])
                     {
                         case "GET":
-                            HandleGetRequest(headers["action"], headers["query"]);
+                            string game = headers.ContainsKey("game") ? headers["game"] : null;
+                            string query = headers.ContainsKey("query") ? headers["query"] : null;
+                            HandleGetRequest(headers["action"], game, query);
                             break;
                         case "POST":
                             HandlePostRequest(headers["action"], headers["body"]);
@@ -255,7 +257,7 @@ namespace Boggle
                         {
                             incomingData = JsonConvert.DeserializeObject(body);
                             UserInfo info = service.createUser(new UserInfo() { Nickname = incomingData.Nickname }, out status);
-                            outgoingData.UserToken = info.UserToken;
+                            outgoingData.UserToken = info?.UserToken;
                             SendMessage(BuildHeader(outgoingData, status));
                         }
                         break;
@@ -263,16 +265,40 @@ namespace Boggle
                         {
                             incomingData = JsonConvert.DeserializeObject(body);
                             UserInfo info = service.joinGame(new UserInfo() { TimeLimit = incomingData.TimeLimit, UserToken = incomingData.UserToken }, out status);
-                            outgoingData.GameID = info.GameID;
+                            outgoingData.GameID = info?.GameID;
                             SendMessage(BuildHeader(outgoingData, status));
                         }
                         break;
                 }
             }
 
-            private void HandleGetRequest(string action, string query)
+            private void HandleGetRequest(string action, string game, string query)
             {
+                HttpStatusCode status;
+                dynamic outgoingData = new ExpandoObject();
+                dynamic incomingData = new ExpandoObject();
+                switch (action)
+                {
+                    case "games":
+                        bool isBrief = IsBrief(query);
+                        GameS gameStatus = service.getGame(game, isBrief ? "yes" : "no", out status);
+                        SendMessage(BuildHeader(gameStatus, status)); //TODO Change, I just want to see what this will do.
+                        break;
+                }
+            }
 
+            private bool IsBrief(string query)
+            {
+                if (query == null)
+                {
+                    return false;
+                } else
+                {
+                    Regex r = new Regex(@"^(\?[bB]rief=(.?yes.?|.?no.?))$");
+                    Match m = r.Match(query);
+                    string match = m.Groups[2].ToString();
+                    return match.Equals("yes");
+                }
             }
 
             private string BuildHeader(dynamic content, HttpStatusCode status)
