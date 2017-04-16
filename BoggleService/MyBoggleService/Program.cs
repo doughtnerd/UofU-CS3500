@@ -231,6 +231,7 @@ namespace Boggle
                     switch (headers["method"])
                     {
                         case "GET":
+                            HandleGetRequest(headers["action"], headers["query"]);
                             break;
                         case "POST":
                             HandlePostRequest(headers["action"], headers["body"]);
@@ -251,24 +252,36 @@ namespace Boggle
                 switch (action)
                 {
                     case "users":
-                        incomingData = JsonConvert.DeserializeObject(body);
-                        UserInfo info = service.createUser(new UserInfo() { Nickname = incomingData.Nickname }, out status);
-                        outgoingData.UserToken = info.UserToken;
-
-                        string header = "HTTP/1.1 " + ((int)status) + " " + status.ToString()+"\r\ncontent-type: application/json; charset=utf-8\r\n";
-                        string content = JsonConvert.SerializeObject(outgoingData);
-                        header += "content-length: " + encoding.GetByteCount(content.ToCharArray()) + "\r\n\r\n";
-                        header += content;
-                        SendMessage(header);
+                        {
+                            incomingData = JsonConvert.DeserializeObject(body);
+                            UserInfo info = service.createUser(new UserInfo() { Nickname = incomingData.Nickname }, out status);
+                            outgoingData.UserToken = info.UserToken;
+                            SendMessage(BuildHeader(outgoingData, status));
+                        }
                         break;
                     case "games":
+                        {
+                            incomingData = JsonConvert.DeserializeObject(body);
+                            UserInfo info = service.joinGame(new UserInfo() { TimeLimit = incomingData.TimeLimit, UserToken = incomingData.UserToken }, out status);
+                            outgoingData.GameID = info.GameID;
+                            SendMessage(BuildHeader(outgoingData, status));
+                        }
                         break;
                 }
             }
 
-            private void HandleGetRequest(string action)
+            private void HandleGetRequest(string action, string query)
             {
 
+            }
+
+            private string BuildHeader(dynamic content, HttpStatusCode status)
+            {
+                string header = "HTTP/1.1 " + ((int)status) + " " + status.ToString() + "\r\ncontent-type: application/json; charset=utf-8\r\n";
+                string data = content==null ? "":JsonConvert.SerializeObject(content);
+                header += "content-length: " + encoding.GetByteCount(data.ToCharArray()) + "\r\n\r\n";
+                header += data;
+                return header;
             }
 
             private void CollectBody(string line)
@@ -283,6 +296,8 @@ namespace Boggle
                 int bytesInLine = encoding.GetByteCount(line.ToCharArray());
                 remainingBody -= bytesInLine;
             }
+
+            #region Currently Unused Extraction Methods
 
             private bool ExtractContentLength(string line, out string length)
             {
@@ -310,6 +325,8 @@ namespace Boggle
                 match = null;
                 return false;
             }
+
+            #endregion
 
             /// <summary>
             /// Sends a string to the client
