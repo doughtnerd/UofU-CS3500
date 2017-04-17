@@ -121,7 +121,7 @@ namespace Boggle
                 // Figure out how many bytes have come in
                 int bytesRead = socket.EndReceive(result);
 
-
+                Console.WriteLine("Received " + bytesRead + " bytes.");
 
                 // If no bytes were received, it means the client closed its side of the socket.
                 // Report that to the console and close our socket.
@@ -169,26 +169,27 @@ namespace Boggle
 
                     if (beginBodyCollection)
                     {
-                        //CollectBody(incoming.ToString());
-                        
                         if (remainingBody == 0)
                         {
                             beginBodyCollection = false;
                             BuildAndSendResponse(headers);
                         } 
                     }
-
+                    /*
                     if (headers.ContainsKey("continue"))
                     {
                         headers.Remove("continue");
                         SendMessage(BuildHeader(null, HttpStatusCode.Continue));
                     }
+                    */
 
                     // Ask for some more data
                     socket.BeginReceive(incomingBytes, 0, incomingBytes.Length,
                         SocketFlags.None, MessageReceived, null);
                 }
             }
+
+            #region Request Data Capturing
 
             private void CaptureHeaders(string line)
             {
@@ -227,6 +228,7 @@ namespace Boggle
                     headers.Add("length", m.Groups[1].ToString());
                     this.remainingBody = int.Parse(m.Groups[1].ToString()) ;
                 }
+                /*
                 r = new Regex(@"^[eE]xpect:.?(100)-[cC]ontinue*$");
                 m = r.Match(line);
                 if (m.Success)
@@ -234,7 +236,28 @@ namespace Boggle
                     //SendMessage(BuildHeader(null, HttpStatusCode.Continue));
                     headers.Add("continue", "100");
                 }
+                */
             }
+
+            private void CollectBody(string line)
+            {
+                if (this.headers.ContainsKey("body"))
+                {
+                    headers["body"] = headers["body"] + line;
+                }
+                else
+                {
+                    headers.Add("body", line);
+                }
+                int bytesInLine = encoding.GetByteCount(line.ToCharArray());
+                remainingBody -= bytesInLine;
+            }
+
+            #endregion
+
+
+            #region Request Handling and Response Building
+
 
             private void BuildAndSendResponse(Dictionary<string, string> headers)
             {
@@ -409,49 +432,10 @@ namespace Boggle
                 return header;
             }
 
-            private void CollectBody(string line)
-            {
-                if (this.headers.ContainsKey("body"))
-                {
-                    headers["body"] = headers["body"] + line;
-                } else
-                {
-                    headers.Add("body", line);
-                }
-                int bytesInLine = encoding.GetByteCount(line.ToCharArray());
-                remainingBody -= bytesInLine;
-            }
-
-            #region Currently Unused Extraction Methods
-
-            private bool ExtractContentLength(string line, out string length)
-            {
-                return ExtractFromLine(line, new Regex(@"^content-length:[ ]{0,1}(\d+)$"), 1, out length);
-            }
-
-            private bool ExtractMethod(string line, out string method)
-            {
-                return ExtractFromLine(line, new Regex(@"^(POST|PUT|GET|DELETE).*$"), 1, out method);
-            }
-
-            private bool ExtractAction(string line, out string action)
-            {
-                return ExtractFromLine(line, new Regex(@"^\w* \/BoggleService\.svc\/(games|users).*$"), 1, out action);
-            }
-
-            private bool ExtractFromLine(string line, Regex regex, int group, out string match)
-            {
-                Match m = regex.Match(line);
-                if (m.Success)
-                {
-                    match = m.Groups[group].ToString();
-                    return true;
-                }
-                match = null;
-                return false;
-            }
-
             #endregion
+
+
+            #region Response Sending Mechanism
 
             /// <summary>
             /// Sends a string to the client
@@ -540,6 +524,8 @@ namespace Boggle
                     }
                 }
             }
+
+            #endregion
         }
     }
 }
