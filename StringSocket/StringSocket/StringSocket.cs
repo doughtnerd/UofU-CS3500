@@ -1,7 +1,7 @@
-﻿// Written by Joe Zachary for CS 3500, November 2012
-// Revised by Joe Zachary April 2016
-// Revised extensively by Joe Zachary April 2017
-
+﻿// Nathan Reeves
+// Chris Carlson
+// April 2017
+// String Socket implementation, all tests pass except optional last two 
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +11,7 @@ using System.Threading;
 
 namespace CustomNetworking
 {
+
     /// <summary>
     /// The type of delegate that is called when a StringSocket send has completed.
     /// </summary>
@@ -61,7 +62,36 @@ namespace CustomNetworking
 
         // Encoding used for sending and receiving
         private Encoding encoding;
+        //Queues for outgoing and incoming messages
+        Queue<SentMessage> sendQueue;
+        Queue<ReceivedMessage> receiveQueue;
 
+        //build messages by byte
+        Byte[] toSend;
+        Byte[] toReceive;
+        int bytesSent;
+
+        bool Sending;
+        bool Receiving;
+        string buildMessage;
+
+        // stored messages 
+        Queue<String> receivedMessages;
+
+        // Send Queue object
+        private struct SentMessage
+        {
+            public string message { get; set; }
+            public SendCallback callback { get; set; }
+            public object payload { get; set; }
+        }
+
+        // Recieve Queue object
+        private struct ReceivedMessage
+        {
+            public ReceiveCallback callback { get; set; }
+            public object payload { get; set; }
+        }
         /// <summary>
         /// Creates a StringSocket from a regular Socket, which should already be connected.  
         /// The read and write methods of the regular Socket must not be called after the
@@ -72,7 +102,13 @@ namespace CustomNetworking
         {
             socket = s;
             encoding = e;
-            // TODO: Complete implementation of StringSocket
+            toSend = new Byte[1];
+            toReceive = new Byte[1024];
+            sendQueue = new Queue<SentMessage>();
+            receiveQueue = new Queue<ReceivedMessage>();
+            Sending = false;
+            Receiving = false;
+            receivedMessages = new Queue<string>();
         }
 
         /// <summary>
@@ -117,7 +153,71 @@ namespace CustomNetworking
         /// </summary>
         public void BeginSend(String s, SendCallback callback, object payload)
         {
-            // TODO: Implement BeginSend
+            lock (sendQueue) 
+            {
+                // take data from method call and add it to send queue
+                sendQueue.Enqueue(new SentMessage { message = s, callback = callback, payload = payload });
+
+                if (!Sending)
+                {
+                    Sending = true;
+                    SendNextMessage();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Sends next message in queue 
+        /// </summary>
+        /// 
+        private void SendNextMessage()
+        {
+            // toSend becomes next queue item
+            toSend = encoding.GetBytes(sendQueue.Peek().message);
+            bytesSent = 0;
+
+            try
+            {
+                // send out toSend
+                socket.BeginSend(toSend, bytesSent, toSend.Length - 1, SocketFlags.None, SendCallback, null);
+            }
+            catch (Exception e)
+            {
+                SentMessage message = sendQueue.Dequeue();
+                ThreadPool.QueueUserWorkItem(o => message.callback(true, message.payload));
+
+            }
+        }
+
+        /// <summary>
+        /// Send callback to make sure everything was sent 
+        /// </summary>
+        private void SendCallback(IAsyncResult strng)
+        {
+            lock (sendQueue)
+            {
+                // determines how much of message was sent
+                bytesSent += socket.EndSend(strng);
+
+                int remainingBytes = toSend.Length - bytesSent;
+
+                // after sending send if there are any remaining bytes
+                if (remainingBytes > 0)
+                    socket.BeginSend(toSend, bytesSent, remainingBytes, SocketFlags.None, SendCallback, null);
+                else
+                {
+                    //remove from queue
+                    SentMessage justSent = sendQueue.Dequeue();
+                    //send callback
+                    ThreadPool.QueueUserWorkItem(o => justSent.callback(true, justSent.payload));
+
+                    //send next messages
+                    if (sendQueue.Count > 0)
+                        SendNextMessage();  
+                    else
+                        Sending = false; 
+                }
+            }
         }
 
         /// <summary>
@@ -160,9 +260,87 @@ namespace CustomNetworking
         /// </summary>
         public void BeginReceive(ReceiveCallback callback, object payload, int length = 0)
         {
-            // TODO: Implement BeginReceive
+
+            lock (receiveQueue) 
+            {
+                //put data from method call into the queue
+                receiveQueue.Enqueue(new ReceivedMessage { callback = callback, payload = payload });
+
+                if (!Receiving)
+                {
+                    Receiving = true;
+                    ReceiveMessage();
+                }
+
+            }
         }
 
+        /// <summary>
+        /// If there are recieved messages in the queue, run callback recieve more bytes
+        /// </summary>
+        
+        private void ReceiveMessage()
+        {
+            while (receiveQueue.Count > 0) 
+            {
+                if (receivedMessages.Count > 0) 
+                {
+                    //take receive item from top of queue
+                    ReceivedMessage justReceived = receiveQueue.Dequeue(); 
+                    string message = receivedMessages.Dequeue();    
+
+                    //callback from queue object
+                    ThreadPool.QueueUserWorkItem(o => justReceived.callback(message, justReceived.payload));
+                }
+                else break;
+            }
+
+            int bytesReceived = 0;
+
+            // Begin receiving bytes
+            if (receiveQueue.Count > 0)
+            {
+                try
+                {
+                    socket.BeginReceive(toReceive, bytesReceived, toReceive.Length, SocketFlags.None, ReceiveCallback, null);
+                }
+                catch (Exception e)
+                {
+                    ReceivedMessage message = receiveQueue.Dequeue();
+                    ThreadPool.QueueUserWorkItem(o => message.callback(e.Message, message.payload));
+                }
+            }
+            else
+                Receiving = false;
+
+        }
+
+        /// <summary>
+        /// Begin Recieve callback
+        /// </summary>
+
+        private void ReceiveCallback(IAsyncResult strng)
+        {
+            lock (receiveQueue)
+            {
+                int bytesReceived = socket.EndReceive(strng);
+
+                // build string based on bytes coming in from receive request                            
+                buildMessage += encoding.GetString(toReceive, 0, bytesReceived);
+
+                // if there are still new lines to read add those string to queue
+                while ((buildMessage.IndexOf("\n") > 0))
+                {
+                    int messageLength = buildMessage.IndexOf("\n");
+                    receivedMessages.Enqueue(buildMessage.Substring(0, messageLength));
+                    //keep track of position
+                    buildMessage = buildMessage.Substring(messageLength + 1);
+                }
+
+                ReceiveMessage();
+            }
+
+        }
         /// <summary>
         /// Frees resources associated with this StringSocket.
         /// </summary>
