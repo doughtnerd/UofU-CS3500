@@ -1,0 +1,1 @@
+﻿select top 1 * from Games order by GameID DESC

@@ -1,0 +1,1 @@
+﻿delete from Games where GameID = 1871
